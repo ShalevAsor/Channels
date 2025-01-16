@@ -9,15 +9,8 @@ import { db } from "@/lib/db";
 /**
  * Retrieves a verification token from the database by its token value
  *
- * @param {string} token - The verification token string to search for
- * @returns {Promise<VerificationToken | null>} The verification token record if found, null otherwise
- *
- * @example
- * const token = await getVerificationTokenByToken("abc123");
- * if (token) {
- *   // Token found
- *   console.log(token.email);
- * }
+ * @param token - The verification token string to search for
+ * @returns The verification token record if found, null otherwise
  */
 export const getVerificationTokenByToken = async (token: string) => {
   try {
@@ -33,15 +26,8 @@ export const getVerificationTokenByToken = async (token: string) => {
 /**
  * Retrieves a verification token from the database by email address
  *
- * @param {string} email - The email address associated with the verification token
- * @returns {Promise<VerificationToken | null>} The first matching verification token record if found, null otherwise
- *
- * @example
- * const token = await getVerificationTokenByEmail("user@example.com");
- * if (token) {
- *   // Token found
- *   console.log(token.token);
- * }
+ * @param  email - The email address associated with the verification token
+ * @returns The first matching verification token record if found, null otherwise
  *
  * @remarks
  * - This function returns the first matching token if multiple exist for the same email

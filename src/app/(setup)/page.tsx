@@ -7,7 +7,11 @@ const SetupPage = async () => {
   if (!userId) {
     return redirect("/auth/login");
   }
-  const server = await getFirstServer(userId);
+  const response = await getFirstServer(userId);
+  if (!response.success) {
+    return redirect("/");
+  }
+  const server = response.data;
   if (server) {
     redirect(`/servers/${server.id}`);
   }

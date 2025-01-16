@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -34,52 +35,91 @@ import { useRouter } from "next/navigation";
 import { useModalStore } from "@/stores/use-modal-store";
 import { ChannelType } from "@prisma/client";
 import { createChannel } from "@/actions/create-channel";
+import { useEffect } from "react";
+import { ServerError } from "@/lib/errors/app-error";
+import { handleError } from "@/lib/errors/handle-error";
+import { useToast } from "@/hooks/use-toast";
+import { FormError } from "@/components/error/form-error";
+
 export const CreateChannelModal = () => {
   const { isOpen, onClose, type, data } = useModalStore();
   const router = useRouter();
-  const { server } = data;
+  const { server, channelType } = data;
   const isModalOpen = isOpen && type === "createChannel";
+  const { toast } = useToast();
 
   const form = useForm({
     resolver: zodResolver(ChannelSchema),
     defaultValues: {
       name: "",
-      type: ChannelType.TEXT,
+      type: channelType || ChannelType.TEXT,
     },
   });
+
+  useEffect(() => {
+    if (channelType) {
+      form.setValue("type", channelType);
+    } else {
+      form.setValue("type", ChannelType.TEXT);
+    }
+  }, [channelType, form]);
+
   const isLoading = form.formState.isSubmitting;
   const onSubmit = async (values: z.infer<typeof ChannelSchema>) => {
     try {
       if (!server?.id) {
-        throw new Error("Server id is required");
+        throw new ServerError("Server information is missing");
       }
-      await createChannel(server?.id, values);
-      toast.success("Channel created successfully");
+      const result = await createChannel(server.id, values);
+      if (!result.success) {
+        toast({
+          description: result.error.message,
+          variant: "destructive",
+        });
+        form.setError("root", {
+          message: result.error.message,
+        });
+        return;
+      }
+
+      toast({
+        description: "Channel created successfully",
+      });
       form.reset();
+      router.refresh();
       onClose();
     } catch (error) {
-      console.error(error);
-      form.setError("root", { message: "An unexpected error occurred." });
+      const errorResponse = handleError(error);
+      toast({
+        description: errorResponse.error.message,
+        variant: "destructive",
+      });
+      form.setError("root", {
+        message: errorResponse.error.message,
+      });
     }
   };
 
   const handleClose = () => {
     form.reset();
+    form.clearErrors();
     onClose();
   };
+  const formError = form.formState.errors.root?.message;
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
-      <DialogContent
-        className="bg-white text-black p-0 overflow-hidden"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
+      <DialogContent className="bg-white text-black p-0 overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
             Create Channel
           </DialogTitle>
+          <DialogDescription className="text-center text-zinc-500">
+            Create a new channel to organize discussions and content
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            {formError && <FormError message={formError} />}
             <div className="space-y-8 px-6">
               <FormField
                 control={form.control}
@@ -95,6 +135,8 @@ export const CreateChannelModal = () => {
                         disabled={isLoading}
                         placeholder="Enter channel name"
                         {...field}
+                        autoFocus={false}
+                        autoComplete="off"
                       />
                     </FormControl>
                     <FormMessage />

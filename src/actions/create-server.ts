@@ -4,20 +4,28 @@ import { v4 as uuid } from "uuid";
 import * as z from "zod";
 import { InitialFormSchema } from "@/schemas";
 import { getUserById } from "@/data/user";
-import { MemberRole } from "@prisma/client";
+import { MemberRole, Server } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { currentUserId } from "@/lib/auth";
+import { AuthError, ServerError } from "@/lib/errors/app-error";
+import { handleError, ActionResponse } from "@/lib/errors/handle-error";
 export const createServer = async (
   values: z.infer<typeof InitialFormSchema>
-) => {
+): Promise<ActionResponse<Server>> => {
   try {
     const userId = await currentUserId();
-    if (!userId) return { error: "Unauthorized" };
+    if (!userId) {
+      throw new AuthError("You must be logged in to create a server");
+    }
     const user = await getUserById(userId);
-    if (!user) return { error: "Unauthorized" };
+    if (!user) {
+      throw new AuthError("User not found");
+    }
     //validate fields
     const validatedFields = InitialFormSchema.safeParse(values);
-    if (!validatedFields.success) return { error: "Invalid fields" };
+    if (!validatedFields.success) {
+      throw new ServerError("Invalid server details provided");
+    }
     //destructuring validated fields
     const { name, imageUrl } = validatedFields.data;
     //create server
@@ -35,10 +43,15 @@ export const createServer = async (
         },
       },
     });
+    if (!server) {
+      throw new ServerError("Failed to create server");
+    }
     revalidatePath("/");
-    return { success: true, server };
+    return {
+      success: true,
+      data: server,
+    };
   } catch (error) {
-    console.log("Error in createServer", error);
-    return { error: "Internal Error" };
+    return handleError(error);
   }
 };

@@ -9,17 +9,23 @@ const ServerIdLayout = async ({
   params,
 }: {
   children: React.ReactNode;
-  params: { serverId: string };
+  params: Promise<{
+    serverId: string;
+  }>;
 }) => {
   const user = await getCurrentUser();
   if (!user) {
     return redirect("/");
   }
   const { serverId } = await params;
-  const server = await getServerByServerAndUserId(serverId, user.id);
+  const response = await getServerByServerAndUserId(serverId, user.id);
+  if (!response.success) {
+    return redirect("/");
+  }
+  const server = response.data;
   if (!server) return redirect("/");
   return (
-    <div className="h-full">
+    <div className="h-screen">
       <div className="hidden md:flex flex-col fixed h-full z-20 w-60 inset-y-0">
         <ServerSidebar serverId={serverId} />
       </div>

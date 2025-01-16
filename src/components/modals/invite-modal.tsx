@@ -3,10 +3,10 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import axios from "axios";
 import { Label } from "@/components/ui/label";
 import { useModalStore } from "@/stores/use-modal-store";
 import { Input } from "@/components/ui/input";
@@ -14,14 +14,20 @@ import { Button } from "@/components/ui/button";
 import { Check, Copy, RefreshCw } from "lucide-react";
 import { useOrigin } from "@/hooks/use-origin";
 import { useState } from "react";
-import { generateNewInviteCode } from "@/actions/generate-server";
+import { generateNewInviteCode } from "@/actions/generate-invite-code";
+import { useToast } from "@/hooks/use-toast";
+import { ServerError } from "@/lib/errors/app-error";
+import { handleError } from "@/lib/errors/handle-error";
+import { ModalError } from "../error/modal-error";
 export const InviteModal = () => {
   const { isOpen, onOpen, onClose, type, data } = useModalStore();
   const origin = useOrigin();
   const isModalOpen = isOpen && type === "invite";
   const { server } = data;
+  const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const inviteUrl = `${origin}/invite/${server?.inviteCode}`;
 
   const onCopy = () => {
@@ -35,26 +41,58 @@ export const InviteModal = () => {
   const onNew = async () => {
     try {
       setIsLoading(true);
-      if (!server) throw new Error("Server not found");
-      const updatedServer = await generateNewInviteCode(server?.id);
-      onOpen("invite", { server: updatedServer });
+      if (!server?.id) throw new ServerError("Server ID is required");
+
+      const result = await generateNewInviteCode(server.id);
+      if (!result.success) {
+        setError(result.error.message);
+        toast({
+          description: result.error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      const updatedServer = result.data;
+      if (updatedServer) {
+        onOpen("invite", {
+          server: {
+            ...server, // Keep all existing server data
+            inviteCode: updatedServer.inviteCode, // Only update the invite code
+          },
+        });
+        toast({
+          description: "Invite code generated successfully",
+        });
+      }
     } catch (error) {
-      console.log(error);
+      const errorResponse = handleError(error);
+      toast({
+        description: errorResponse.error.message,
+        variant: "destructive",
+      });
+      setError(errorResponse.error.message);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleClose = () => {
+    setError("");
+    setIsLoading(false);
+    onClose();
+  };
   return (
-    <Dialog open={isModalOpen} onOpenChange={onClose}>
-      <DialogContent
-        className="bg-white text-black p-0 overflow-hidden"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
+    <Dialog open={isModalOpen} onOpenChange={handleClose}>
+      <DialogContent className="bg-white text-black p-0 overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
             Invite Friends
           </DialogTitle>
+          <DialogDescription className="text-center text-zinc-500">
+            Share the invite link with others to grant access to this server
+          </DialogDescription>
         </DialogHeader>
+        {error && <ModalError message={error} />}
         <div className="p-6">
           <Label className="uppercase text-xs font-bold text-zinc-500 dark:text-secondary/70">
             Server invite link

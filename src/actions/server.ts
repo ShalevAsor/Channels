@@ -1,8 +1,15 @@
+"use server";
 import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
-
-export const getFirstServer = async (userId: string) => {
+import { AuthError, ServerError } from "@/lib/errors/app-error";
+import { ActionResponse, handleError } from "@/lib/errors/handle-error";
+import { Channel, Member, Server, User } from "@prisma/client";
+export const getFirstServer = async (
+  userId: string
+): Promise<ActionResponse<Server | null>> => {
   try {
+    if (!userId) {
+      throw new AuthError("User id is required");
+    }
     const server = await db.server.findFirst({
       where: {
         members: {
@@ -12,18 +19,26 @@ export const getFirstServer = async (userId: string) => {
         },
       },
     });
-    return server;
+    return {
+      success: true,
+      data: server || null,
+    };
   } catch (error) {
-    console.error("Error in getFirstServer", error);
-    return null;
+    return handleError(error);
   }
 };
 
 export const getServerByServerAndUserId = async (
   serverId: string,
   userId: string
-) => {
+): Promise<ActionResponse<Server>> => {
   try {
+    if (!serverId) {
+      throw new ServerError("Server id is required");
+    }
+    if (!userId) {
+      throw new AuthError("User id is required");
+    }
     const server = await db.server.findUnique({
       where: {
         id: serverId,
@@ -34,15 +49,70 @@ export const getServerByServerAndUserId = async (
         },
       },
     });
-    return server;
+    if (!server) {
+      throw new ServerError("Server not found");
+    }
+    return {
+      success: true,
+      data: server,
+    };
   } catch (error) {
-    console.log("Error in getServerById", error);
-    return null;
+    return handleError(error);
+  }
+};
+type ServerWithGeneralChannel = Server & {
+  channels: Channel[];
+};
+export const getServerWithGeneralChannelByServerAndUserId = async (
+  serverId: string,
+  userId: string
+): Promise<ActionResponse<ServerWithGeneralChannel>> => {
+  try {
+    if (!serverId) {
+      throw new ServerError("Server id is required");
+    }
+    if (!userId) {
+      throw new AuthError("User id is required");
+    }
+    const server = await db.server.findUnique({
+      where: {
+        id: serverId,
+        members: {
+          some: {
+            userId,
+          },
+        },
+      },
+      include: {
+        channels: {
+          where: {
+            name: "general",
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+      },
+    });
+    if (!server) {
+      throw new ServerError("Server not found");
+    }
+    return {
+      success: true,
+      data: server,
+    };
+  } catch (error) {
+    return handleError(error);
   }
 };
 
-export const getServers = async (userId: string) => {
+export const getServers = async (
+  userId: string
+): Promise<ActionResponse<Server[]>> => {
   try {
+    if (!userId) {
+      throw new AuthError("User id is required");
+    }
     const servers = await db.server.findMany({
       where: {
         members: {
@@ -52,15 +122,30 @@ export const getServers = async (userId: string) => {
         },
       },
     });
-    return servers;
+    if (!servers) {
+      throw new ServerError("Servers not found");
+    }
+    return {
+      success: true,
+      data: servers,
+    };
   } catch (error) {
-    console.error("Error in getServers", error);
-    return null;
+    return handleError(error);
   }
 };
-
-export const getServerById = async (serverId: string) => {
+type ServerWithMembersAndChannels = Server & {
+  channels: Channel[];
+  members: (Member & {
+    user: User;
+  })[];
+};
+export const getServerById = async (
+  serverId: string
+): Promise<ActionResponse<ServerWithMembersAndChannels>> => {
   try {
+    if (!serverId) {
+      throw new ServerError("Server id is required");
+    }
     const server = await db.server.findUnique({
       where: {
         id: serverId,
@@ -81,18 +166,29 @@ export const getServerById = async (serverId: string) => {
         },
       },
     });
-    return server;
+    if (!server) {
+      throw new ServerError("Server not found");
+    }
+    return {
+      success: true,
+      data: server,
+    };
   } catch (error) {
-    console.log("Error in getServerById", error);
-    return null;
+    return handleError(error);
   }
 };
 
 export const getServerByInviteCodeAndUserId = async (
   inviteCode: string,
   userId: string
-) => {
+): Promise<ActionResponse<Server | null>> => {
   try {
+    if (!inviteCode) {
+      throw new ServerError("Invite code is required");
+    }
+    if (!userId) {
+      throw new AuthError("User id is required");
+    }
     const server = await db.server.findFirst({
       where: {
         inviteCode,
@@ -103,18 +199,27 @@ export const getServerByInviteCodeAndUserId = async (
         },
       },
     });
-    return server;
+
+    return {
+      success: true,
+      data: server,
+    };
   } catch (error) {
-    console.log("Error in getServerByInviteCodeAndUserId", error);
-    return null;
+    return handleError(error);
   }
 };
 
 export const updateServerMemberByInviteCode = async (
   inviteCode: string,
   userId: string
-) => {
+): Promise<ActionResponse<Server>> => {
   try {
+    if (!inviteCode) {
+      throw new ServerError("Invite code is required");
+    }
+    if (!userId) {
+      throw new AuthError("User id is required");
+    }
     const server = await db.server.update({
       where: {
         inviteCode,
@@ -125,9 +230,14 @@ export const updateServerMemberByInviteCode = async (
         },
       },
     });
-    return server;
+    if (!server) {
+      throw new ServerError("Server not found");
+    }
+    return {
+      success: true,
+      data: server,
+    };
   } catch (error) {
-    console.log("Error in updateServerMemberByInviteCode", error);
-    return null;
+    return handleError(error);
   }
 };

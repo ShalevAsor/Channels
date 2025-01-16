@@ -11,32 +11,61 @@ import {
 import { useModalStore } from "@/stores/use-modal-store";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { leaveServer } from "@/actions/leave-server";
+import { useToast } from "@/hooks/use-toast";
+import { ServerError } from "@/lib/errors/app-error";
+import { handleError } from "@/lib/errors/handle-error";
+import { ModalError } from "@/components/error/modal-error";
 export const LeaveServerModal = () => {
   const { isOpen, onOpen, onClose, type, data } = useModalStore();
   const router = useRouter();
   const isModalOpen = isOpen && type === "leaveServer";
   const { server } = data;
   const [isLoading, setIsLoading] = useState(false);
-
+  const [error, setError] = useState("");
+  const { toast } = useToast();
   const handleLeaveServer = async () => {
     try {
-      if (!server?.id) throw new Error("Server not found");
-      const updatedServer = await leaveServer(server?.id);
-      toast("");
+      setIsLoading(true);
+      setError("");
+      if (!server?.id) {
+        throw new ServerError("Server information is missing");
+      }
+      const result = await leaveServer(server?.id);
+      if (!result.success) {
+        setError(result.error.message);
+        toast({
+          description: result.error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        description: "Server left successfully",
+      });
+      onClose();
       router.push("/");
     } catch (error) {
-      console.log(error);
-      toast("Failed to leave server");
+      const errorResponse = handleError(error);
+      toast({
+        description: errorResponse.error.message,
+        variant: "destructive",
+      });
+      setError(errorResponse.error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleClose = () => {
+    setError("");
+    setIsLoading(false);
+    onClose();
+  };
+
   return (
-    <Dialog open={isModalOpen} onOpenChange={onClose}>
+    <Dialog open={isModalOpen} onOpenChange={handleClose}>
       <DialogContent className="bg-white text-black p-0 overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
@@ -50,6 +79,7 @@ export const LeaveServerModal = () => {
             ?
           </DialogDescription>
         </DialogHeader>
+        {error && <ModalError message={error} />}
         <DialogFooter className="bg-gray-100 px-6 py-4">
           <div className="flex items-center justify-center w-full">
             <Button variant="ghost" disabled={isLoading} onClick={onClose}>

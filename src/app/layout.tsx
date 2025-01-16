@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Open_Sans } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { cn } from "@/lib/utils";
 import { ModalProvider } from "@/components/providers/modal-provider";
 import { SessionProvider } from "next-auth/react";
-import { auth } from "@/auth";
+import { PusherProvider } from "@/components/providers/pusher-provider";
+import { QueryProvider } from "@/components/providers/query-provider";
 const openSans = Open_Sans({
   subsets: ["latin"],
   variable: "--font-open-sans",
@@ -33,13 +34,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(
           `${openSans.variable} ${geistSans.variable} ${geistMono.variable} antialiased`,
-          "bg-white dark:bg-[#313338]"
+          "bg-white dark:bg-[#313338] h-full"
         )}
       >
         <SessionProvider>
@@ -51,9 +51,10 @@ export default async function RootLayout({
               enableSystem={false}
               storageKey="discord-theme"
             >
-              <ModalProvider />
-
-              {children}
+              <PusherProvider>
+                <ModalProvider />
+                <QueryProvider>{children}</QueryProvider>
+              </PusherProvider>
             </ThemeProvider>
           </div>
         </SessionProvider>

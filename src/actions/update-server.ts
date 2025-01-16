@@ -1,24 +1,29 @@
 "use server";
 import { db } from "@/lib/db";
-import { v4 as uuid } from "uuid";
 import * as z from "zod";
 import { InitialFormSchema } from "@/schemas";
 import { getUserById } from "@/data/user";
-import { MemberRole } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { currentUserId } from "@/lib/auth";
+import { ActionResponse, handleError } from "@/lib/errors/handle-error";
+import { AuthError, ServerError } from "@/lib/errors/app-error";
+import { Server } from "@prisma/client";
 export const updateServerSettings = async (
   serverId: string,
   values: z.infer<typeof InitialFormSchema>
-) => {
+): Promise<ActionResponse<Server>> => {
   try {
     const userId = await currentUserId();
-    if (!userId) return { error: "Unauthorized" };
+    if (!userId) {
+      throw new ServerError("You must be logged in to update server settings");
+    }
     const user = await getUserById(userId);
-    if (!user) return { error: "Unauthorized" };
+    if (!user) throw new AuthError("User not found");
     //validate fields
     const validatedFields = InitialFormSchema.safeParse(values);
-    if (!validatedFields.success) return { error: "Invalid fields" };
+    if (!validatedFields.success) {
+      throw new ServerError("Invalid server data");
+    }
     //destructuring validated fields
     const { name, imageUrl } = validatedFields.data;
     //update server
@@ -30,10 +35,10 @@ export const updateServerSettings = async (
         imageUrl,
       },
     });
+    if (!server) throw new ServerError("Server not found");
     revalidatePath("/");
-    return { success: true, server };
+    return { success: true, data: server };
   } catch (error) {
-    console.log("Error in updateServerSettings", error);
-    return { error: "Internal Error" };
+    return handleError(error);
   }
 };

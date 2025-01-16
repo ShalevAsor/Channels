@@ -24,8 +24,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FileUpload } from "@/components/file-upload";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+import { handleError } from "@/lib/errors/handle-error";
+import { FormError } from "@/components/error/form-error";
 export const InitialModal = () => {
   const router = useRouter();
+  const { toast } = useToast();
   const form = useForm({
     resolver: zodResolver(InitialFormSchema),
     defaultValues: {
@@ -36,21 +40,34 @@ export const InitialModal = () => {
   const isLoading = form.formState.isSubmitting;
   const onSubmit = async (values: z.infer<typeof InitialFormSchema>) => {
     try {
-      const res = await createServer(values);
-      if (res.error) {
-        if (res.error === "Unauthorized") {
-          console.log("Unauthorized");
-          return router.push("/auth/login");
-        }
-        form.setError("root", { message: res.error });
-      } else {
-        form.reset();
+      const result = await createServer(values);
+      if (!result.success) {
+        toast({
+          description: result.error.message,
+          variant: "destructive",
+        });
+        form.setError("root", {
+          message: result.error.message,
+        });
+        return;
       }
+      toast({
+        description: "Channel created successfully",
+      });
+      form.reset();
+      router.refresh();
     } catch (error) {
-      console.error(error);
-      form.setError("root", { message: "An unexpected error occurred." });
+      const errorResponse = handleError(error);
+      toast({
+        description: errorResponse.error.message,
+        variant: "destructive",
+      });
+      form.setError("root", {
+        message: errorResponse.error.message,
+      });
     }
   };
+  const formError = form.formState.errors.root?.message;
 
   return (
     <Dialog open>
@@ -69,6 +86,7 @@ export const InitialModal = () => {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            {formError && <FormError message={formError} />}
             <div className="space-y-8 px-6">
               <div className="flex items-center justify-center">
                 <FormField

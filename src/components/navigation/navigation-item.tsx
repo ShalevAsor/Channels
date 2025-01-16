@@ -36,11 +36,16 @@ export const NavigationItem = ({ id, imageUrl, name }: NavigationItemProps) => {
           )}
         >
           <Image
-            fill
+            width={48}
+            height={48}
             src={imageUrl}
-            alt="Channel photo"
-            className="object-cover"
-            sizes="(max-width: 640px) 48px, 64px"
+            alt={`${name} server`}
+            className="object-cover object-center"
+            quality={100}
+            priority
+            loading="eager"
+            sizes="48px"
+            unoptimized
           />
         </div>
       </button>

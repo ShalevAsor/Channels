@@ -25,10 +25,13 @@ import { Button } from "@/components/ui/button";
 import { FileUpload } from "@/components/file-upload";
 import { useRouter } from "next/navigation";
 import { useModalStore } from "@/stores/use-modal-store";
+import { useToast } from "@/hooks/use-toast";
+import { handleError } from "@/lib/errors/handle-error";
+import { FormError } from "@/components/error/form-error";
 export const CreateServerModal = () => {
   const { isOpen, onClose, type } = useModalStore();
   const router = useRouter();
-
+  const { toast } = useToast();
   const isModalOpen = isOpen && type === "createServer";
 
   const form = useForm({
@@ -41,27 +44,41 @@ export const CreateServerModal = () => {
   const isLoading = form.formState.isSubmitting;
   const onSubmit = async (values: z.infer<typeof InitialFormSchema>) => {
     try {
-      const res = await createServer(values);
-      if (res.error) {
-        if (res.error === "Unauthorized") {
-          console.log("Unauthorized");
-          return router.push("/auth/login");
-        }
-        form.setError("root", { message: res.error });
-      } else {
-        form.reset();
+      const result = await createServer(values);
+      if (!result.success) {
+        toast({
+          description: result.error.message,
+          variant: "destructive",
+        });
+        form.setError("root", {
+          message: result.error.message,
+        });
+        return;
       }
+      toast({
+        description: "Server created successfully",
+      });
+      form.reset();
+      router.refresh();
       onClose();
     } catch (error) {
-      console.error(error);
-      form.setError("root", { message: "An unexpected error occurred." });
+      const errorResponse = handleError(error);
+      toast({
+        description: errorResponse.error.message,
+        variant: "destructive",
+      });
+      form.setError("root", {
+        message: errorResponse.error.message,
+      });
     }
   };
 
   const handleClose = () => {
     form.reset();
+    form.clearErrors();
     onClose();
   };
+  const formError = form.formState.errors.root?.message;
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
       <DialogContent
@@ -79,6 +96,7 @@ export const CreateServerModal = () => {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            {formError && <FormError message={formError} />}
             <div className="space-y-8 px-6">
               <div className="flex items-center justify-center">
                 <FormField

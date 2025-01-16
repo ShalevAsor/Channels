@@ -7,3 +7,5 @@ export const TIME = {
   HOUR: 3600 * 1000,
   DAY: 24 * 3600 * 1000,
 } as const;
+
+export const DATE_FORMAT = "d MMM yyyy, HH:mm";

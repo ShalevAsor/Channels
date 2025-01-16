@@ -14,6 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import UserAvatar from "@/components/user-avatar";
 import {
   Check,
+  UserX,
   Gavel,
   Loader2,
   MoreVertical,
@@ -35,15 +36,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MemberRole } from "@prisma/client";
-import { set } from "zod";
 import { updateMemberRole } from "@/actions/update-member-role";
 import { kickMemberFromServer } from "@/actions/kick-member";
+import { usePathname, useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+import { handleError } from "@/lib/errors/handle-error";
+import { ModalError } from "@/components/error/modal-error";
 
 export const MembersModal = () => {
   const { isOpen, onOpen, onClose, type, data } = useModalStore();
   const isModalOpen = isOpen && type === "members";
   const { server } = data as { server: ServerWithMembersWithUsers };
+  const pathname = usePathname();
+  const router = useRouter();
   const [loadingId, setLoadingId] = useState("");
+  const { toast } = useToast();
+  const [error, setError] = useState("");
   const roleIconMap = {
     GUEST: null,
     MODERATOR: <ShieldCheckIcon className="w-4 h-4 text-indigo-500" />,
@@ -52,15 +60,29 @@ export const MembersModal = () => {
 
   const handleRoleChange = async (memberId: string, role: MemberRole) => {
     try {
+      setError("");
       setLoadingId(memberId);
-      const updatedServer = await updateMemberRole(server.id, memberId, role);
-      if (!updatedServer) {
-        // You might want to use a toast notification here
-        throw new Error("Failed to update member role");
+      const result = await updateMemberRole(server.id, memberId, role);
+      if (!result.success) {
+        setError(result.error.message);
+        toast({
+          description: result.error.message,
+          variant: "destructive",
+        });
+        return;
       }
+      const updatedServer = result.data;
       onOpen("members", { server: updatedServer });
+      toast({
+        description: "Member role updated successfully",
+      });
+      return;
     } catch (error) {
-      console.log(error);
+      const errorResponse = handleError(error);
+      toast({
+        description: errorResponse.error.message,
+        variant: "destructive",
+      });
     } finally {
       setLoadingId("");
     }
@@ -68,25 +90,44 @@ export const MembersModal = () => {
 
   const handleUserKick = async (memberId: string) => {
     try {
+      setError("");
       setLoadingId(memberId);
-      const updatedServer = await kickMemberFromServer(server.id, memberId);
-      if (!updatedServer) {
-        throw new Error("Failed to kick member from server");
+      const result = await kickMemberFromServer(server.id, memberId);
+      if (!result.success) {
+        setError(result.error.message);
+        toast({
+          description: result.error.message,
+          variant: "destructive",
+        });
+        return;
       }
+      const updatedServer = result.data;
       onOpen("members", { server: updatedServer });
+      toast({
+        description: "Member kicked successfully",
+      });
+      if (pathname.includes(`/conversations/${memberId}`)) {
+        router.push(`/servers/${server.id}`);
+      }
     } catch (error) {
-      console.log(error);
+      const errorResponse = handleError(error);
+      toast({
+        description: errorResponse.error.message,
+        variant: "destructive",
+      });
     } finally {
       setLoadingId("");
     }
   };
+  const handleClose = () => {
+    setError("");
+    setLoadingId("");
+    onClose();
+  };
 
   return (
-    <Dialog open={isModalOpen} onOpenChange={onClose}>
-      <DialogContent
-        className="bg-white text-black  overflow-hidden"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
+    <Dialog open={isModalOpen} onOpenChange={handleClose}>
+      <DialogContent className="bg-white text-black  overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
             Manage Members
@@ -95,6 +136,7 @@ export const MembersModal = () => {
             {server?.members.length} Members
           </DialogDescription>
         </DialogHeader>
+        {error && <ModalError message={error} />}
         <ScrollArea className="mt-8 mx-h-[420px] pr-6">
           {server?.members.map((member) => (
             <div key={member.id} className="flex items-center gap-x-2 mb-6">
@@ -165,7 +207,6 @@ export const MembersModal = () => {
             </div>
           ))}
         </ScrollArea>
-        hello members
       </DialogContent>
     </Dialog>
   );
