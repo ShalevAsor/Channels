@@ -41,10 +41,7 @@ import { UserInfo } from "@/types";
  */
 type MessageHandler = (message: BaseMessagePayload) => void;
 // Define type for WebSocket message data
-interface WSMessageData {
-  event: WSEventType;
-  data: BaseMessagePayload;
-}
+
 type MessageHandlersMap = Map<string, Set<MessageHandler>>;
 
 /**
