@@ -4,7 +4,7 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { MessageFileSchema } from "@/schemas";
-import { createFileMessage, createMessage } from "@/actions/message";
+import { createFileMessage } from "@/actions/message";
 import {
   Dialog,
   DialogContent,

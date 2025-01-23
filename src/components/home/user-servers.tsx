@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Search, Users, Settings, Lock, Globe } from "lucide-react";
-import { MemberRole, Server } from "@prisma/client";
+import { Users, Lock, Globe } from "lucide-react";
+import { MemberRole } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import type { ServerWithMemberInfo } from "@/types";
 import { cn } from "@/lib/utils";

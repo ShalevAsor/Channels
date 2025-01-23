@@ -40,8 +40,7 @@ export const ModalProvider = () => {
    */
   useEffect(() => {
     setIsMounted(true);
-  }),
-    [];
+  }, []);
   // Prevent rendering during SSR or initial mount
 
   if (!isMounted) return null;

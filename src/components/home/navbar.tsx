@@ -1,5 +1,3 @@
-import { Bell } from "lucide-react";
-import { Button } from "../ui/button";
 import { UserButton } from "../auth/user-button";
 import Link from "next/link";
 import { NavigationAction } from "../navigation/navigation-action";

@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SettingsSchema } from "@/schemas";
 import { Button } from "@/components/ui/button";
 import { settings } from "@/actions/settings";
-import { useTransition, useState } from "react";
+import { useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   Form,

@@ -5,9 +5,7 @@ import { Member, MemberRole, Server, User } from "@prisma/client";
 import { ShieldAlert, ShieldCheck } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import UserAvatar from "@/components/user-avatar";
-import { useEffect, useState } from "react";
 import { useWebSocket } from "../providers/websocket-provider";
-import { WSEventType } from "@/lib/websocket";
 import { StatusIndicator } from "./server-status-indicator";
 import {
   Tooltip,
@@ -30,10 +28,9 @@ const roleIconMap = {
   [MemberRole.ADMIN]: <ShieldAlert className="h-4 w-4 ml-2 text-rose-500" />,
 };
 
-export const ServerMember = ({ member, server }: ServerMemberProps) => {
+export const ServerMember = ({ member }: ServerMemberProps) => {
   const params = useParams();
   const router = useRouter();
-  const icon = roleIconMap[member.role];
   const { isConnected } = useWebSocket();
   const onClick = () => {
     router.push(`/servers/${params?.serverId}/conversations/${member.id}`);

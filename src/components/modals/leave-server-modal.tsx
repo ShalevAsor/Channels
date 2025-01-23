@@ -24,7 +24,7 @@ import { ServerError } from "@/lib/errors/app-error";
 import { handleError } from "@/lib/errors/handle-error";
 import { ModalError } from "@/components/error/modal-error";
 export const LeaveServerModal = () => {
-  const { isOpen, onOpen, onClose, type, data } = useModalStore();
+  const { isOpen, onClose, type, data } = useModalStore();
   const router = useRouter();
   const isModalOpen = isOpen && type === "leaveServer";
   const { server } = data;

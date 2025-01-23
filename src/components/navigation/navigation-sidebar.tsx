@@ -7,8 +7,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { NavigationItem } from "@/components/navigation/navigation-item";
 import { ModeToggle } from "@/components/mode-toggle";
 import { UserButton } from "../auth/user-button";
-import { FaHome } from "react-icons/fa";
-import { Button } from "../ui/button";
 import { HomeButton } from "../home-button";
 
 export const NavigationSidebar = async () => {

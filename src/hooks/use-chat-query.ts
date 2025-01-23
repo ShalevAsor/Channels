@@ -48,13 +48,6 @@ export const useChatQuery = ({
      */
     queryFn: async ({ pageParam }) => {
       try {
-        // Prepare query parameters
-        const queryParams = {
-          cursor: pageParam ? String(pageParam) : undefined,
-          limit: pageSize,
-          [paramKey]: paramValue,
-        };
-
         // Execute appropriate query based on chat type
         let response: ActionResponse<
           PaginatedMessages | PaginatedDirectMessages

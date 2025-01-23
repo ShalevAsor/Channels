@@ -36,15 +36,17 @@ export const CreateServerModal = () => {
    * Form Configuration
    * Sets up form validation and default values for server creation
    */
-  const form = useForm({
+  type ServerFormValues = z.infer<typeof ServerFormSchema>;
+
+  const form = useForm<ServerFormValues>({
     resolver: zodResolver(ServerFormSchema),
     defaultValues: {
       name: "",
       imageUrl: "",
       isPublic: false,
       category: "",
-      tags: [],
       description: "",
+      tags: [],
     },
   });
 

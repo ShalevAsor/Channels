@@ -26,18 +26,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Search,
-  Loader2,
-  ChevronDown,
-  ChevronUp,
-  Users,
-  Tag,
-  X,
-} from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, Users, Tag, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { joinServer } from "@/actions/server-discovery";
-import { Server } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { ServerWithMemberCount } from "@/types";
 
@@ -142,6 +133,7 @@ export function PublicServers({ servers, userId }: PublicServersProps) {
         description: "Failed to join server",
         variant: "destructive",
       });
+      console.error("Failed to join server:", error);
     } finally {
       setJoiningServer(null);
     }

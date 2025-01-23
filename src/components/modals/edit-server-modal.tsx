@@ -115,7 +115,7 @@ export const EditServerModal = () => {
             Edit your server
           </DialogTitle>
           <DialogDescription className="text-sm text-zinc-500 dark:text-zinc-400 text-center">
-            Update your server's settings and information
+            Update your server&apos;s settings and information
           </DialogDescription>
         </DialogHeader>
         <ServerForm

@@ -19,9 +19,10 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { useState } from "react";
+import { UseFormReturn } from "react-hook-form";
 
 interface ServerFormProps {
-  form: any;
+  form: UseFormReturn<z.infer<typeof ServerFormSchema>>;
   isLoading: boolean;
   onSubmit: (values: z.infer<typeof ServerFormSchema>) => void;
   buttonLabel: string;

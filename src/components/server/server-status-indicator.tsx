@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import { useWebSocket } from "../providers/websocket-provider";
 
 interface StatusIndicatorProps {
   isConnected: boolean;

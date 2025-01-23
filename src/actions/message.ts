@@ -149,7 +149,10 @@ export async function createMessage(
       });
     } catch (error) {
       // Just log the broadcast error, don't fail the whole operation
-      console.log("Broadcast failed, message will sync through polling");
+      console.error(
+        "Broadcast failed, message will sync through polling",
+        error
+      );
     }
 
     // Revalidate the chat page

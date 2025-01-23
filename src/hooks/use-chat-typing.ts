@@ -8,7 +8,7 @@ interface TypingUser {
   username: string;
 }
 
-export const useChatTyping = (channelId: string, currentUserId: string) => {
+export const useChatTyping = (channelId: string) => {
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const { addMessageHandler, removeMessageHandler } = useWebSocket();
 

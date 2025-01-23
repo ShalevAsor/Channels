@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import {
-  ControlBar,
   GridLayout,
   LiveKitRoom,
   ParticipantTile,
@@ -12,7 +11,6 @@ import {
 import { Track } from "livekit-client";
 
 import "@livekit/components-styles";
-import { Channel } from "@prisma/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Loader2 } from "lucide-react";
 
