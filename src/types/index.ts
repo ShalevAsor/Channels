@@ -195,3 +195,8 @@ export interface MessageQueryParams {
   channelId?: string;
   conversationId?: string;
 }
+
+export type UserInfo = {
+  memberId: string;
+  role: MemberRole;
+};

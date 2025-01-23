@@ -28,7 +28,7 @@ export function handleError(
   error: unknown,
   options: ErrorHandlerOptions = { logError: true }
 ): ErrorResponse {
-  let errorResponse: ErrorResponse = {
+  const errorResponse: ErrorResponse = {
     success: false,
     error: {
       message: "An unexpected error occurred",

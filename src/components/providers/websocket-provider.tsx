@@ -32,6 +32,7 @@ import React, {
   useCallback,
 } from "react";
 import { WSEventType, BaseMessagePayload } from "@/lib/websocket";
+import { UserInfo } from "@/types";
 
 /**
  * MessageHandler Type
@@ -39,6 +40,13 @@ import { WSEventType, BaseMessagePayload } from "@/lib/websocket";
  * Ensures type safety for message processing throughout the application
  */
 type MessageHandler = (message: BaseMessagePayload) => void;
+// Define type for WebSocket message data
+interface WSMessageData {
+  event: WSEventType;
+  data: BaseMessagePayload;
+}
+type MessageHandlersMap = Map<string, Set<MessageHandler>>;
+
 /**
  * WebSocketContextType Interface
  * Defines the shape of the WebSocket context that will be available throughout the application
@@ -55,7 +63,7 @@ interface WebSocketContextType {
   isConnected: boolean;
   connectionCount: number;
   lastError: string | null;
-  subscribe: (channelName: string, userId: string, userInfo: any) => void;
+  subscribe: (channelName: string, userId: string, userInfo: UserInfo) => void;
   unsubscribe: (channelName: string) => void;
 
   addMessageHandler: (event: WSEventType, handler: MessageHandler) => void;
@@ -108,9 +116,8 @@ export const WebSocketProvider = ({
   const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
   /* Subscription and Message Handling */
   const activeSubscriptions = useRef<Set<string>>(new Set());
-  const messageHandlers = useRef<Map<string, Set<(message: any) => void>>>(
-    new Map()
-  ); // Stores message handlers for different event types
+  const messageHandlers = useRef<MessageHandlersMap>(new Map());
+  // Stores message handlers for different event types
   /* Reconnection State Management */
   const currentReconnectDelay = useRef(INITIAL_RECONNECT_DELAY);
   const isInPollingMode = useRef(false);
@@ -127,7 +134,7 @@ export const WebSocketProvider = ({
    * - Clean up subscriptions when unmounting
    */
   const addMessageHandler = useCallback(
-    (event: string, handler: (message: any) => void) => {
+    (event: string, handler: MessageHandler) => {
       if (!messageHandlers.current.has(event)) {
         messageHandlers.current.set(event, new Set());
       }
@@ -138,7 +145,7 @@ export const WebSocketProvider = ({
   );
 
   const removeMessageHandler = useCallback(
-    (event: string, handler: (message: any) => void) => {
+    (event: string, handler: MessageHandler) => {
       const handlers = messageHandlers.current.get(event);
       if (handlers) {
         handlers.delete(handler);
@@ -204,8 +211,9 @@ export const WebSocketProvider = ({
         } catch (error) {
           // Server health check failed - implement backoff strategy
 
-          console.log(
-            `Server unavailable - retrying in ${currentReconnectDelay.current}ms`
+          console.error(
+            `Server unavailable - retrying in ${currentReconnectDelay.current}ms`,
+            error
           );
           isInPollingMode.current = true;
           scheduleReconnectRef.current?.();
@@ -371,7 +379,7 @@ export const WebSocketProvider = ({
    * updates while maintaining a clean subscription state.
    */
   const subscribe = useCallback(
-    (channelName: string, userId: string, userInfo: any) => {
+    (channelName: string, userId: string, userInfo: UserInfo) => {
       // Only attempt subscription if WebSocket connection is active
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         /**
@@ -437,21 +445,32 @@ export const WebSocketProvider = ({
      */
     return () => {
       console.log("Cleaning up WebSocket connection...");
-      // Cancel any pending reconnection attempts
+      // Capture the current values at the time of cleanup
+      // This ensures we're working with the correct state
+      const currentActiveSubscriptions = activeSubscriptions.current;
+      const currentMessageHandlers = messageHandlers.current;
+      const currentReconnectTimeout = reconnectTimeout.current;
+      const currentWs = wsRef.current;
 
-      if (reconnectTimeout.current) {
-        clearTimeout(reconnectTimeout.current);
+      // Clean up timeouts
+      if (currentReconnectTimeout) {
+        clearTimeout(currentReconnectTimeout);
       }
-      // Close and cleanup the WebSocket connection
 
-      if (wsRef.current) {
-        wsRef.current.close();
+      // Close WebSocket connection
+      if (currentWs) {
+        currentWs.close();
         wsRef.current = null;
       }
-      // Clear all subscription and message handler states
 
-      activeSubscriptions.current.clear();
-      messageHandlers.current.clear();
+      // Clear subscriptions and handlers using the captured values
+      if (currentActiveSubscriptions) {
+        currentActiveSubscriptions.clear();
+      }
+
+      if (currentMessageHandlers) {
+        currentMessageHandlers.clear();
+      }
     };
   }, []);
 
