@@ -442,32 +442,21 @@ export const WebSocketProvider = ({
      */
     return () => {
       console.log("Cleaning up WebSocket connection...");
-      // Capture the current values at the time of cleanup
-      // This ensures we're working with the correct state
-      const currentActiveSubscriptions = activeSubscriptions.current;
-      const currentMessageHandlers = messageHandlers.current;
-      const currentReconnectTimeout = reconnectTimeout.current;
-      const currentWs = wsRef.current;
+      // Cancel any pending reconnection attempts
 
-      // Clean up timeouts
-      if (currentReconnectTimeout) {
-        clearTimeout(currentReconnectTimeout);
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
       }
+      // Close and cleanup the WebSocket connection
 
-      // Close WebSocket connection
-      if (currentWs) {
-        currentWs.close();
+      if (wsRef.current) {
+        wsRef.current.close();
         wsRef.current = null;
       }
+      // Clear all subscription and message handler states
 
-      // Clear subscriptions and handlers using the captured values
-      if (currentActiveSubscriptions) {
-        currentActiveSubscriptions.clear();
-      }
-
-      if (currentMessageHandlers) {
-        currentMessageHandlers.clear();
-      }
+      activeSubscriptions.current.clear();
+      messageHandlers.current.clear();
     };
   }, []);
 

@@ -356,7 +356,7 @@ export const ChatInput = ({
         emitTypingStatus(false);
       }
     };
-  }, [emitTypingStatus]);
+  }, []);
 
   return (
     <Form {...form}>
