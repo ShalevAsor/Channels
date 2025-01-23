@@ -1,16 +1,17 @@
 "use server";
 import { db } from "@/lib/db";
 import * as z from "zod";
-import { InitialFormSchema } from "@/schemas";
+import { ServerFormSchema } from "@/schemas";
 import { getUserById } from "@/data/user";
 import { revalidatePath } from "next/cache";
 import { currentUserId } from "@/lib/auth";
 import { ActionResponse, handleError } from "@/lib/errors/handle-error";
 import { AuthError, ServerError } from "@/lib/errors/app-error";
 import { Server } from "@prisma/client";
+
 export const updateServerSettings = async (
   serverId: string,
-  values: z.infer<typeof InitialFormSchema>
+  values: z.infer<typeof ServerFormSchema>
 ): Promise<ActionResponse<Server>> => {
   try {
     const userId = await currentUserId();
@@ -19,22 +20,27 @@ export const updateServerSettings = async (
     }
     const user = await getUserById(userId);
     if (!user) throw new AuthError("User not found");
-    //validate fields
-    const validatedFields = InitialFormSchema.safeParse(values);
+
+    const validatedFields = ServerFormSchema.safeParse(values);
     if (!validatedFields.success) {
       throw new ServerError("Invalid server data");
     }
-    //destructuring validated fields
-    const { name, imageUrl } = validatedFields.data;
-    //update server
+
+    const { name, imageUrl, isPublic, category, tags, description } =
+      validatedFields.data;
 
     const server = await db.server.update({
       where: { id: serverId, userId },
       data: {
         name,
         imageUrl,
+        isPublic,
+        category,
+        tags,
+        description,
       },
     });
+
     if (!server) throw new ServerError("Server not found");
     revalidatePath("/");
     return { success: true, data: server };

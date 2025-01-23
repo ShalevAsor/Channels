@@ -30,10 +30,8 @@ const ServerIdPage = async ({ params }: ServerIdPageProps) => {
   if (!response.success) {
     return redirect("/");
   }
+
   const server = response.data;
-  if (!server) {
-    return redirect("/");
-  }
 
   // Check for the general channel
   const initialChannel = server.channels[0];

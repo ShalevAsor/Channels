@@ -2,6 +2,7 @@
 import { db } from "@/lib/db";
 import { AuthError, ServerError } from "@/lib/errors/app-error";
 import { ActionResponse, handleError } from "@/lib/errors/handle-error";
+import { ServerWithMemberInfo } from "@/types";
 import { Channel, Member, Server, User } from "@prisma/client";
 export const getFirstServer = async (
   userId: string
@@ -236,6 +237,51 @@ export const updateServerMemberByInviteCode = async (
     return {
       success: true,
       data: server,
+    };
+  } catch (error) {
+    return handleError(error);
+  }
+};
+
+//
+
+export const getServersWithMemberInfo = async (
+  userId: string
+): Promise<ActionResponse<ServerWithMemberInfo[]>> => {
+  try {
+    const servers = await db.server.findMany({
+      where: {
+        members: {
+          some: {
+            userId,
+          },
+        },
+      },
+      include: {
+        members: {
+          where: {
+            userId,
+          },
+          select: {
+            id: true,
+            role: true,
+            userId: true,
+          },
+        },
+        _count: {
+          select: {
+            members: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return {
+      success: true,
+      data: servers,
     };
   } catch (error) {
     return handleError(error);

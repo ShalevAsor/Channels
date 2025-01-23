@@ -8,12 +8,58 @@ import {
   User,
   DirectMessage,
   Conversation,
+  MemberRole,
 } from "@prisma/client";
+export interface ServerInsights {
+  mostActiveServer: {
+    id: string;
+    name: string;
+    messageCount: number;
+  } | null;
+  serverGrowth: {
+    id: string;
+    name: string;
+    growthRate: number;
+  } | null;
+  newServersCount: number;
+}
 
+export interface UserActivity {
+  messagesSent: number;
+  serversJoined: number;
+  channelsParticipating: number;
+}
+
+export interface RecommendedServer {
+  id: string;
+  name: string;
+  category: string | null;
+  memberCount: number;
+}
+
+export interface InsightsData {
+  serverInsights: ServerInsights;
+  userActivity: UserActivity;
+  recommendedServers: RecommendedServer[];
+}
 export type ServerWithMembersWithUsers = Server & {
   members: (Member & { user: User })[];
 };
-
+export type ServerWithMemberInfo = Server & {
+  members: {
+    id: string;
+    role: MemberRole;
+    userId: string;
+  }[];
+  _count: {
+    members: number;
+  };
+};
+export type ServerWithMemberCount = Server & {
+  _count: {
+    members: number;
+  };
+};
 export type NextApiResponseServerIo = NextApiResponse & {
   socket: Socket & {
     server: NetServer & {
@@ -59,7 +105,9 @@ export interface MessagesResponse {
 }
 
 export type MessageStatus = "pending" | "sending" | "failed";
-
+export type MemberWithUser = Member & {
+  user: User;
+};
 export interface PendingMessage {
   id: string;
   content: string;
@@ -98,3 +146,52 @@ export type PaginatedDirectMessages = {
   items: DirectMessageWithMemberDetails[];
   nextCursor: string | undefined;
 };
+
+// ***********************************
+// Chat types
+// ***********************************
+// types/index.ts
+
+/**
+ * Base message interface with common properties
+ */
+export interface BaseMessage {
+  id: string;
+  content: string;
+  fileUrl: string | null;
+  fileType: string | null;
+  fileName: string | null;
+  deleted: boolean;
+  edited: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Extended message interface including member information
+ */
+
+/**
+ * Member information for chat messages
+ */
+export interface ChatMember extends Member {
+  user: User;
+}
+
+/**
+ * Paginated response structure for messages
+ */
+
+/**
+ * Direct message specific pagination
+ */
+
+/**
+ * Query parameters for fetching messages
+ */
+export interface MessageQueryParams {
+  cursor?: string;
+  limit?: number;
+  channelId?: string;
+  conversationId?: string;
+}

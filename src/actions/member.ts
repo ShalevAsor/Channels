@@ -2,6 +2,7 @@
 import { db } from "@/lib/db";
 import { AuthError, MemberError, ServerError } from "@/lib/errors/app-error";
 import { ActionResponse, handleError } from "@/lib/errors/handle-error";
+import { MemberWithUser } from "@/types";
 import { Member } from "@prisma/client";
 
 export const getMemberByServerAndUserId = async (
@@ -39,7 +40,7 @@ export const getMemberByServerAndUserId = async (
 export const getMemberWithUserByServerAndUserId = async (
   serverId: string,
   userId: string
-): Promise<ActionResponse<Member>> => {
+): Promise<ActionResponse<MemberWithUser>> => {
   try {
     if (!serverId) {
       throw new ServerError("Server id is required");

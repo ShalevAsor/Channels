@@ -102,6 +102,10 @@ model Server {
   imageUrl String @db.Text
   inviteCode String @unique
   userId String
+  isPublic Boolean @default(false)  // New field
+  category String?                  // New field
+  tags String[]                     // New field
+  description String? @db.Text      // New field
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   members Member[]
   channels Channel[]

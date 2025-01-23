@@ -15,7 +15,7 @@ import { generateVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/lib/mail";
 import bcrypt from "bcryptjs";
 import { ActionResponse, handleError } from "@/lib/errors/handle-error";
-import { AuthError, ServerError, UserError } from "@/lib/errors/app-error";
+import { AuthError, UserError } from "@/lib/errors/app-error";
 /**
  * Updates user settings with comprehensive validation and security checks.
  * Handles different update scenarios including email changes and password updates.

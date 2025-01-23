@@ -1,5 +1,12 @@
 "use client";
-
+/**
+ * Delete Channel Modal Component
+ *
+ * Provides a confirmation interface for channel deletion with comprehensive
+ * error handling and user feedback. This modal implements safety measures
+ * to prevent accidental channel deletions while maintaining a smooth user
+ * experience.
+ */
 import {
   Dialog,
   DialogContent,
@@ -22,9 +29,23 @@ export const DeleteChannelModal = () => {
   const router = useRouter();
   const isModalOpen = isOpen && type === "deleteChannel";
   const { server, channel } = data;
+  /**
+   * Local State Management
+   * Tracks loading state and error messages during the deletion process.
+   * This helps provide immediate feedback to users and prevents multiple
+   * deletion attempts.
+   */
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const [error, setError] = useState("");
+  /**
+   * Channel Deletion Handler
+   * Manages the complete lifecycle of a channel deletion request:
+   * 1. Validates required data
+   * 2. Attempts deletion
+   * 3. Handles success/failure scenarios
+   * 4. Manages user navigation
+   */
   const handleDeleteChannel = async () => {
     try {
       setError("");
@@ -62,15 +83,12 @@ export const DeleteChannelModal = () => {
 
   return (
     <Dialog open={isModalOpen} onOpenChange={onClose}>
-      <DialogContent
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        className="bg-white text-black p-0 overflow-hidden"
-      >
+      <DialogContent className="bg-white text-black dark:bg-zinc-900 dark:text-white p-0 overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
             Delete Channel
           </DialogTitle>
-          <DialogDescription className="text-center text-zinc-500">
+          <DialogDescription className="text-center text-zinc-500 dark:text-zinc-400">
             Are you sure you want to do this? <br />
             <span className="font-semibold text-indigo-500">
               #{channel?.name}{" "}
@@ -79,7 +97,7 @@ export const DeleteChannelModal = () => {
           </DialogDescription>
         </DialogHeader>
         {error && <ModalError message={error} />}
-        <DialogFooter className="bg-gray-100 px-6 py-4">
+        <DialogFooter className="bg-gray-100 dark:bg-zinc-900 px-6 py-4">
           <div className="flex items-center justify-center w-full gap-x-2">
             <Button variant="secondary" disabled={isLoading} onClick={onClose}>
               Cancel

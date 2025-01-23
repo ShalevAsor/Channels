@@ -1,11 +1,18 @@
 "use client";
-
+/**
+ * Server Section Component
+ * Manages the header sections for channels and members within a server.
+ * Provides role-based access control for channel creation and member management.
+ */
 import { ServerWithMembersWithUsers } from "@/types";
 import { ChannelType, MemberRole } from "@prisma/client";
 import { ActionTooltip } from "../action-tooltip";
 import { Plus, Settings } from "lucide-react";
 import { useModalStore } from "@/stores/use-modal-store";
-
+/**
+ * Props Interface
+ * Defines the configuration options for different section types within a server
+ */
 interface ServerSectionProps {
   label: string;
   role?: MemberRole;
@@ -13,7 +20,11 @@ interface ServerSectionProps {
   channelType?: ChannelType;
   server?: ServerWithMembersWithUsers;
 }
-
+/**
+ * ServerSection Component
+ * Renders a section header with conditional action buttons based on user roles.
+ * Controls access to channel creation and member management functionality.
+ */
 export const ServerSection = ({
   label,
   role,

@@ -83,6 +83,7 @@ const MemberIdPage = async ({ params, searchParams }: MemberIdPageProps) => {
           <ChatInput
             name={otherMember.user.name || ""}
             type="conversation"
+            username={currentMember.user.name || "Anonymous"}
             messageParams={{
               conversationId: conversation.id,
               memberId: currentMember.id,

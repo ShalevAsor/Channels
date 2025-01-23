@@ -1,5 +1,13 @@
 "use client";
-
+/**
+ * Members Management Modal Component
+ *
+ * A comprehensive interface for managing server members, including:
+ * - Viewing all server members
+ * - Managing member roles (Guest, Moderator, Admin)
+ * - Removing members from the server
+ * - Real-time updates of member status
+ */
 import {
   Dialog,
   DialogContent,
@@ -14,7 +22,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import UserAvatar from "@/components/user-avatar";
 import {
   Check,
-  UserX,
   Gavel,
   Loader2,
   MoreVertical,
@@ -127,12 +134,12 @@ export const MembersModal = () => {
 
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
-      <DialogContent className="bg-white text-black  overflow-hidden">
+      <DialogContent className="bg-white text-black dark:bg-zinc-900 dark:text-white  overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
             Manage Members
           </DialogTitle>
-          <DialogDescription className="text-center text-zinc-500">
+          <DialogDescription className="text-center text-zinc-500 dark:text-zinc-400">
             {server?.members.length} Members
           </DialogDescription>
         </DialogHeader>

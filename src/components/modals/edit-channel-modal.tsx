@@ -1,4 +1,9 @@
 "use client";
+/**
+ * Edit Channel Modal Component
+ * Provides an interface for modifying existing channel settings within a server.
+ * Handles form state, data validation, and channel updates with error management.
+ */
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -7,6 +12,7 @@ import { ChannelSchema } from "@/schemas";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -43,7 +49,10 @@ export const EditChannelModal = () => {
   const { server, channel } = data;
   const isModalOpen = isOpen && type === "editChannel";
   const { toast } = useToast();
-
+  /**
+   * Form Configuration with Zod Validation
+   * Initializes form with current channel settings as defaults
+   */
   const form = useForm({
     resolver: zodResolver(ChannelSchema),
     defaultValues: {
@@ -51,7 +60,10 @@ export const EditChannelModal = () => {
       type: channel?.type || ChannelType.TEXT,
     },
   });
-
+  /**
+   * Channel Data Population Effect
+   * Updates form values when channel data becomes available
+   */
   useEffect(() => {
     if (channel) {
       form.setValue("name", channel.name);
@@ -60,6 +72,10 @@ export const EditChannelModal = () => {
   }, [form, channel]);
 
   const isLoading = form.formState.isSubmitting;
+  /**
+   * Channel Update Handler
+   * Processes the update request with comprehensive error handling
+   */
   const onSubmit = async (values: z.infer<typeof ChannelSchema>) => {
     try {
       if (!server?.id) {
@@ -104,14 +120,14 @@ export const EditChannelModal = () => {
 
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
-      <DialogContent
-        className="bg-white text-black p-0 overflow-hidden"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
+      <DialogContent className="bg-white text-black dark:bg-zinc-900 dark:text-white p-0 overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
             Edit Channel
           </DialogTitle>
+          <DialogDescription className="text-sm text-zinc-500 dark:text-zinc-400 text-center">
+            Update your channel information
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -122,12 +138,12 @@ export const EditChannelModal = () => {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="uppercase text-xs font-bold text-zinc-500 dark:text-secondary/70">
+                    <FormLabel className="uppercase text-xs font-bold text-primary dark:text-primary/70">
                       Channel name
                     </FormLabel>
                     <FormControl>
                       <Input
-                        className="bg-zinc-300/50 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
+                        className="bg-zinc-300/50 dark:text-white dark:bg-zinc-700/50 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
                         disabled={isLoading}
                         placeholder="Enter channel name"
                         {...field}
@@ -142,18 +158,20 @@ export const EditChannelModal = () => {
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Channel Type</FormLabel>
+                    <FormLabel className="uppercase text-xs font-bold text-primary dark:text-primary/70">
+                      Channel Type
+                    </FormLabel>
                     <Select
                       disabled={isLoading}
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="bg-zinc-300/50 border-0 focus:ring-0 text-black focus:ring-offset-0 capitalize outline-none">
+                        <SelectTrigger className="bg-zinc-300/50 dark:text-white dark:bg-zinc-700/50 border-0 focus:ring-0 text-black focus:ring-offset-0 capitalize outline-none">
                           <SelectValue placeholder="Select a channel type" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="dark:text-white dark:bg-zinc-700">
                         {Object.values(ChannelType).map((type) => (
                           <SelectItem
                             key={type}
@@ -170,7 +188,7 @@ export const EditChannelModal = () => {
                 )}
               />
             </div>
-            <DialogFooter className="bg-gray-100 px-6 py-4">
+            <DialogFooter className="bg-gray-100 dark:bg-zinc-900 px-6 py-4">
               <Button variant="primary" disabled={isLoading}>
                 Save
               </Button>

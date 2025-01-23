@@ -1,10 +1,18 @@
 "use client";
-
+/**
+ * Navigation Action Component
+ * Provides the UI element for creating new servers through a tooltip-enhanced button.
+ * This component serves as the entry point for server creation in the navigation sidebar/navbar.
+ */
 import { Plus } from "lucide-react";
 import { ActionTooltip } from "../action-tooltip";
 import { useModalStore } from "@/stores/use-modal-store";
 
 export const NavigationAction = () => {
+  /**
+   * Modal Control
+   * Accesses the modal store to trigger the server creation flow
+   */
   const { onOpen } = useModalStore();
   return (
     <div>

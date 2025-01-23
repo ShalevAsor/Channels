@@ -7,6 +7,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { NavigationItem } from "@/components/navigation/navigation-item";
 import { ModeToggle } from "@/components/mode-toggle";
 import { UserButton } from "../auth/user-button";
+import { FaHome } from "react-icons/fa";
+import { Button } from "../ui/button";
+import { HomeButton } from "../home-button";
 
 export const NavigationSidebar = async () => {
   const user = await getCurrentUser();
@@ -36,6 +39,7 @@ export const NavigationSidebar = async () => {
         })}
       </ScrollArea>
       <div className="pb-3 mt-auto flex items-center flex-col gap-y-4">
+        <HomeButton />
         <ModeToggle side="right" />
         <UserButton side="right" />
       </div>

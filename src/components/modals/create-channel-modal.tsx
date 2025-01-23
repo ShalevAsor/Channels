@@ -1,11 +1,15 @@
 "use client";
+/**
+ * Create Channel Modal Component
+ * Provides an interface for creating new channels within a server.
+ * Supports different channel types (TEXT, AUDIO, VIDEO) with form validation
+ * and real-time error handling.
+ */
+
 import * as z from "zod";
-import { createServer } from "@/actions/create-server";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { ChannelSchema } from "@/schemas";
-import { toast } from "sonner";
-
 import {
   Dialog,
   DialogContent,
@@ -47,15 +51,21 @@ export const CreateChannelModal = () => {
   const { server, channelType } = data;
   const isModalOpen = isOpen && type === "createChannel";
   const { toast } = useToast();
-
+  /**
+   * Form Configuration
+   * Sets up form validation and handles channel type preselection
+   */
   const form = useForm({
     resolver: zodResolver(ChannelSchema),
     defaultValues: {
       name: "",
-      type: channelType || ChannelType.TEXT,
+      type: channelType || ChannelType.TEXT, // Default to TEXT channels
     },
   });
-
+  /**
+   * Channel Type Synchronization
+   * Ensures form reflects the selected channel type from context
+   */
   useEffect(() => {
     if (channelType) {
       form.setValue("type", channelType);
@@ -65,8 +75,13 @@ export const CreateChannelModal = () => {
   }, [channelType, form]);
 
   const isLoading = form.formState.isSubmitting;
+  /**
+   * Channel Creation Handler
+   * Manages the creation process including validation and error handling
+   */
   const onSubmit = async (values: z.infer<typeof ChannelSchema>) => {
     try {
+      // Server validation
       if (!server?.id) {
         throw new ServerError("Server information is missing");
       }
@@ -108,12 +123,12 @@ export const CreateChannelModal = () => {
   const formError = form.formState.errors.root?.message;
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
-      <DialogContent className="bg-white text-black p-0 overflow-hidden">
+      <DialogContent className="bg-white text-black dark:bg-zinc-900 dark:text-white p-0 overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
             Create Channel
           </DialogTitle>
-          <DialogDescription className="text-center text-zinc-500">
+          <DialogDescription className="text-center text-zinc-500 dark:text-zinc-400">
             Create a new channel to organize discussions and content
           </DialogDescription>
         </DialogHeader>
@@ -126,12 +141,12 @@ export const CreateChannelModal = () => {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="uppercase text-xs font-bold text-zinc-500 dark:text-secondary/70">
+                    <FormLabel className="uppercase text-xs font-bold text-primary ">
                       Channel name
                     </FormLabel>
                     <FormControl>
                       <Input
-                        className="bg-zinc-300/50 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
+                        className="bg-zinc-300/50 text-black dark:text-white dark:bg-zinc-700/50 border-0 focus-visible:ring-0  focus-visible:ring-offset-0"
                         disabled={isLoading}
                         placeholder="Enter channel name"
                         {...field}
@@ -148,18 +163,20 @@ export const CreateChannelModal = () => {
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Channel Type</FormLabel>
+                    <FormLabel className="uppercase text-xs font-bold text-primary">
+                      Channel Type
+                    </FormLabel>
                     <Select
                       disabled={isLoading}
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="bg-zinc-300/50 border-0 focus:ring-0 text-black focus:ring-offset-0 capitalize outline-none">
+                        <SelectTrigger className="bg-zinc-300/50 dark:text-white dark:bg-zinc-700/50 border-0 focus:ring-0 text-black focus:ring-offset-0 capitalize outline-none">
                           <SelectValue placeholder="Select a channel type" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="dark:text-white dark:bg-zinc-700">
                         {Object.values(ChannelType).map((type) => (
                           <SelectItem
                             key={type}
@@ -176,7 +193,7 @@ export const CreateChannelModal = () => {
                 )}
               />
             </div>
-            <DialogFooter className="bg-gray-100 px-6 py-4">
+            <DialogFooter className="bg-gray-100 dark:bg-zinc-900 px-6 py-4">
               <Button variant="primary" disabled={isLoading}>
                 Create
               </Button>

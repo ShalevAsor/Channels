@@ -1,5 +1,9 @@
 "use client";
-
+/**
+ * Server Channel Component
+ * Renders an individual channel within a server's channel list.
+ * Provides navigation and management options based on user roles.
+ */
 import { cn } from "@/lib/utils";
 import { Channel, ChannelType, MemberRole, Server } from "@prisma/client";
 import { Edit, Hash, Lock, Mic, Trash, Video } from "lucide-react";
@@ -12,7 +16,10 @@ interface ServerChannelProps {
   server: Server;
   role?: MemberRole;
 }
-
+/**
+ * Channel Icon Mapping
+ * Associates each channel type with its corresponding icon
+ */
 const iconMap = {
   [ChannelType.TEXT]: Hash,
   [ChannelType.AUDIO]: Mic,
@@ -28,11 +35,17 @@ export const ServerChannel = ({
   const router = useRouter();
   const { onOpen } = useModalStore();
   const Icon = iconMap[channel.type];
-
+  /**
+   * Navigation Handler
+   * Directs users to the selected channel
+   */
   const onClick = () => {
     router.push(`/servers/${params?.serverId}/channels/${channel.id}`);
   };
-
+  /**
+   * Modal Action Handler
+   * Manages channel editing and deletion actions
+   */
   const onAction = (e: React.MouseEvent, action: ModalType) => {
     e.stopPropagation();
     onOpen(action, { server, channel });

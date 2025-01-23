@@ -55,9 +55,27 @@ export const NewPasswordSchema = z.object({
   password: z.string().min(6, "Minimum 6 characters required"),
 });
 
-export const InitialFormSchema = z.object({
-  name: z.string().min(1, "Server name is required"),
+export const ServerFormSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Server name is required")
+    .max(100, "Server name cannot exceed 100 characters"),
   imageUrl: z.string().min(1, "Server image is required"),
+  isPublic: z.boolean().default(false),
+  category: z
+    .string()
+    .max(50, "Category cannot exceed 50 characters")
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)), // Handle empty strings
+  tags: z
+    .array(z.string().max(20, "Tag cannot exceed 20 characters"))
+    .max(10, "Maximum of 10 tags allowed")
+    .default([]),
+  description: z
+    .string()
+    .max(500, "Description cannot exceed 500 characters")
+    .optional()
+    .transform((val) => (val === "" ? undefined : val)), // Handle empty strings
 });
 
 export const ChannelSchema = z

@@ -1,11 +1,10 @@
 import { getChannelById } from "@/actions/channel";
-import { getMemberByServerAndUserId } from "@/actions/member";
+import { getMemberWithUserByServerAndUserId } from "@/actions/member";
 import { ChatHeader } from "@/components/chat/chat-header";
 import { ChatInput } from "@/components/chat/chat-input";
 import { ChatMessages } from "@/components/chat/chat-messages";
 import { MediaRoom } from "@/components/media-room";
 import { currentUserId } from "@/lib/auth";
-import { AuthError } from "@/lib/errors/app-error";
 import { ChannelType } from "@prisma/client";
 import { redirect } from "next/navigation";
 
@@ -33,7 +32,7 @@ const ChannelIdPage = async ({ params }: ChannelIdPageProps) => {
   // Handle async operations concurrently
   const [channelResponse, memberResponse] = await Promise.all([
     getChannelById(channelId),
-    getMemberByServerAndUserId(serverId, userId),
+    getMemberWithUserByServerAndUserId(serverId, userId),
   ]);
   if (!channelResponse.success || !memberResponse.success) {
     return redirect(`/servers/${serverId}`);
@@ -67,10 +66,12 @@ const ChannelIdPage = async ({ params }: ChannelIdPageProps) => {
           <ChatInput
             name={channel.name}
             type="channel"
+            username={member.user.name || "Anonymous"}
             messageParams={{
               // New structure replacing apiUrl and query
               channelId: channel.id,
               serverId: channel.serverId,
+              memberId: member.id,
             }}
           />
         </>

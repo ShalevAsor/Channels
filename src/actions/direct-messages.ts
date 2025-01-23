@@ -2,7 +2,6 @@
 
 import { currentUserId } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { pusherServer, channelName, EVENTS } from "@/lib/pusher";
 import { revalidatePath } from "next/cache";
 import * as z from "zod";
 import { ChatInputSchema, MessageFileSchema } from "@/schemas";
@@ -13,11 +12,13 @@ import {
 import { ActionResponse, handleError } from "@/lib/errors/handle-error";
 import {
   AuthError,
-  ChannelError,
   MemberError,
   MessageError,
   ServerError,
 } from "@/lib/errors/app-error";
+import { broadcastMessage, WSEventType } from "@/lib/websocket";
+import { DirectMessage } from "@prisma/client";
+
 const MESSAGES_BATCH = 10;
 
 // Define type for DirectMessage with nested relations
@@ -143,9 +144,13 @@ export async function createDirectMessage(
       throw new MessageError("Message not created");
     }
 
-    const channelKey = channelName(conversationId);
-    const messageData = JSON.parse(JSON.stringify(message));
-    await pusherServer.trigger(channelKey, EVENTS.NEW_MESSAGE, messageData);
+    // Broadcast the new direct message
+    await broadcastMessage<DirectMessage>({
+      channelId: conversationId,
+      type: WSEventType.NEW_MESSAGE,
+      message: message,
+      member: message.member,
+    });
 
     revalidatePath(`/conversations/${conversationId}`);
     return { success: true, data: message };
@@ -210,9 +215,13 @@ export async function updateDirectMessage(
       },
     });
 
-    const channelKey = channelName(conversationId);
-    const messageData = JSON.parse(JSON.stringify(updatedMessage));
-    await pusherServer.trigger(channelKey, EVENTS.MESSAGE_UPDATE, messageData);
+    // Broadcast the updated direct message
+    await broadcastMessage<DirectMessage>({
+      channelId: conversationId,
+      type: WSEventType.MESSAGE_UPDATE,
+      message: updatedMessage,
+      member: updatedMessage.member,
+    });
 
     revalidatePath(`/conversations/${conversationId}`);
     return { success: true, data: updatedMessage };
@@ -232,17 +241,17 @@ export async function deleteDirectMessage(
     if (!conversationId) {
       throw new ServerError("Conversation ID is required");
     }
+
     const userId = await currentUserId();
     if (!userId) {
       throw new AuthError("Unauthorized");
     }
 
+    // First find the message with its member info
     const message = await db.directMessage.findFirst({
       where: {
         id: messageId,
-        member: {
-          userId,
-        },
+        conversationId,
       },
       include: {
         member: {
@@ -256,6 +265,13 @@ export async function deleteDirectMessage(
 
     if (!message) {
       throw new MessageError("Message not found");
+    }
+
+    // Check if the user is the message owner
+    if (message.member.userId !== userId) {
+      throw new MessageError(
+        "You can only delete your own messages in conversations"
+      );
     }
 
     const deletedMessage = await db.directMessage.update({
@@ -278,12 +294,13 @@ export async function deleteDirectMessage(
       },
     });
 
-    const channelKey = channelName(conversationId);
-    await pusherServer.trigger(
-      channelKey,
-      EVENTS.MESSAGE_UPDATE,
-      deletedMessage
-    );
+    // Broadcast the deleted message
+    await broadcastMessage<DirectMessage>({
+      channelId: conversationId,
+      type: WSEventType.MESSAGE_DELETE,
+      message: deletedMessage,
+      member: deletedMessage.member,
+    });
 
     revalidatePath(`/conversations/${conversationId}`);
     return { success: true, data: deletedMessage };
@@ -342,10 +359,13 @@ export async function createDirectFileMessage(
       },
     });
 
-    const channelKey = channelName(conversationId);
-    console.log("Triggering file message on channel:", channelKey);
-
-    await pusherServer.trigger(channelKey, EVENTS.NEW_MESSAGE, message);
+    // Broadcast the new direct message
+    await broadcastMessage<DirectMessage>({
+      channelId: conversationId,
+      type: WSEventType.NEW_MESSAGE,
+      message: message,
+      member: message.member,
+    });
 
     revalidatePath(`/servers/${serverId}/conversations/${conversationId}`);
     return { success: true, data: message };

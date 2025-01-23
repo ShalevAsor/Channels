@@ -15,10 +15,7 @@ export const SettingsModal = () => {
   const isModalOpen = isOpen && type === "settings";
   return (
     <Dialog open={isModalOpen} onOpenChange={onClose}>
-      <DialogContent
-        className="bg-white text-black dark:bg-[#313338] dark:text-white overflow-hidden"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
+      <DialogContent className="bg-white text-black dark:bg-[#313338] dark:text-white overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
             Settings

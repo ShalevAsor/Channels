@@ -1,248 +1,64 @@
-// // import { useInfiniteQuery } from "@tanstack/react-query";
-// // import { usePusher } from "@/components/providers/pusher-provider";
-// // import { getMessages } from "@/actions/message";
-// // import { MessageWithMemberWithUser, MessagesResponse } from "@/types";
-
-// // interface ChatQueryProps {
-// //   queryKey: string;
-// //   paramKey: "channelId" | "conversationId";
-// //   paramValue: string;
-// // }
-
-// // export const useChatQuery = ({
-// //   queryKey,
-// //   paramKey,
-// //   paramValue,
-// // }: ChatQueryProps) => {
-// //   const { isConnected } = usePusher();
-
-// //   const {
-// //     data,
-// //     fetchNextPage,
-// //     hasNextPage,
-// //     isFetchingNextPage,
-// //     status,
-// //     error,
-// //   } = useInfiniteQuery({
-// //     queryKey: [queryKey],
-// //     queryFn: async ({ pageParam }) => {
-// //       try {
-// //         return await getMessages({
-// //           cursor: pageParam ? String(pageParam) : undefined,
-// //           [paramKey]: paramValue,
-// //         });
-// //       } catch (error) {
-// //         console.error("[CHAT_QUERY_ERROR]", error);
-// //         throw error;
-// //       }
-// //     },
-// //     initialPageParam: undefined as undefined | string,
-// //     getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
-// //     refetchInterval: isConnected ? false : 1000,
-// //     staleTime: 60 * 1000, // 1 minute
-// //     gcTime: 5 * 60 * 1000, // 5 minutes
-// //   });
-
-// //   return {
-// //     data,
-// //     fetchNextPage,
-// //     hasNextPage,
-// //     isFetchingNextPage,
-// //     status,
-// //     error,
-// //   };
-// // };
-// // hooks/use-chat-query.ts
-// import { useInfiniteQuery } from "@tanstack/react-query";
-// import { usePusher } from "@/components/providers/pusher-provider";
-// import { getMessages } from "@/actions/message";
-// import { getDirectMessages } from "@/actions/direct-messages";
-// /**
-//  * Props for configuring the chat query behavior
-//  */
-// interface ChatQueryProps {
-//   // Unique identifier for this query in React Query's cache
-//   queryKey: string;
-//   // Type of chat we're querying
-//   paramKey: "channelId" | "conversationId";
-//   // ID of the channel or conversation
-//   paramValue: string;
-//   // Whether this is a channel or direct message chat
-//   type: "channel" | "conversation";
-// }
-// /**
-//  * Custom hook that manages fetching and pagination of chat messages
-//  * Integrates with Pusher for real-time updates and React Query for data caching
-//  *
-//  * This hook provides:
-//  * - Infinite scrolling functionality
-//  * - Real-time updates through Pusher
-//  * - Fallback polling when Pusher connection is lost
-//  * - Caching and data synchronization
-//  */
-// export const useChatQuery = ({
-//   queryKey,
-//   paramKey,
-//   paramValue,
-//   type,
-// }: ChatQueryProps) => {
-//   // Get Pusher connection state to determine if we need fallback polling
-//   const { isConnected } = usePusher();
-//   // Set up infinite query with React Query
-//   const {
-//     data, // Contains all fetched pages of messages
-//     fetchNextPage, // Function to load more messages
-//     hasNextPage, // Whether more messages are available
-//     isFetchingNextPage, // Loading state for pagination
-//     status, // Overall query status
-//     error, // Any errors that occurred
-//   } = useInfiniteQuery({
-//     queryKey: [queryKey],
-//     // Function that fetches a page of messages
-//     queryFn: async ({ pageParam }) => {
-//       try {
-//         // Choose between channel messages or direct messages
-//         if (type === "channel") {
-//           return await getMessages({
-//             cursor: pageParam ? String(pageParam) : undefined,
-//             channelId: paramValue,
-//           });
-//         } else {
-//           return await getDirectMessages({
-//             cursor: pageParam ? String(pageParam) : undefined,
-//             conversationId: paramValue,
-//           });
-//         }
-//       } catch (error) {
-//         console.error("[CHAT_QUERY_ERROR]", error);
-//         throw error;
-//       }
-//     },
-//     // Start with no cursor for first page
-//     initialPageParam: undefined as undefined | string,
-//     // Extract the cursor for the next page from the current page's response
-//     getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
-//     // Enable polling only when Pusher is disconnected
-//     refetchInterval: isConnected ? false : 1000,
-//   });
-
-//   return {
-//     data,
-//     fetchNextPage,
-//     hasNextPage,
-//     isFetchingNextPage,
-//     status,
-//     error,
-//   };
-// };
-// import { useInfiniteQuery } from "@tanstack/react-query";
-// import { usePusher } from "@/components/providers/pusher-provider";
-// import { getMessages } from "@/actions/message";
-// import { MessageWithMemberWithUser, MessagesResponse } from "@/types";
-
-// interface ChatQueryProps {
-//   queryKey: string;
-//   paramKey: "channelId" | "conversationId";
-//   paramValue: string;
-// }
-
-// export const useChatQuery = ({
-//   queryKey,
-//   paramKey,
-//   paramValue,
-// }: ChatQueryProps) => {
-//   const { isConnected } = usePusher();
-
-//   const {
-//     data,
-//     fetchNextPage,
-//     hasNextPage,
-//     isFetchingNextPage,
-//     status,
-//     error,
-//   } = useInfiniteQuery({
-//     queryKey: [queryKey],
-//     queryFn: async ({ pageParam }) => {
-//       try {
-//         return await getMessages({
-//           cursor: pageParam ? String(pageParam) : undefined,
-//           [paramKey]: paramValue,
-//         });
-//       } catch (error) {
-//         console.error("[CHAT_QUERY_ERROR]", error);
-//         throw error;
-//       }
-//     },
-//     initialPageParam: undefined as undefined | string,
-//     getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
-//     refetchInterval: isConnected ? false : 1000,
-//     staleTime: 60 * 1000, // 1 minute
-//     gcTime: 5 * 60 * 1000, // 5 minutes
-//   });
-
-//   return {
-//     data,
-//     fetchNextPage,
-//     hasNextPage,
-//     isFetchingNextPage,
-//     status,
-//     error,
-//   };
-// };
 // hooks/use-chat-query.ts
+
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { usePusher } from "@/components/providers/pusher-provider";
+import { useWebSocket } from "@/components/providers/websocket-provider";
 import { getMessages } from "@/actions/message";
 import { getDirectMessages } from "@/actions/direct-messages";
 import { ActionResponse } from "@/lib/errors/handle-error";
 import { PaginatedDirectMessages, PaginatedMessages } from "@/types";
+
+/**
+ * Default page size for message queries
+ */
+const DEFAULT_PAGE_SIZE = 10;
+
 /**
  * Props for configuring the chat query behavior
  */
 interface ChatQueryProps {
-  // Unique identifier for this query in React Query's cache
-  queryKey: string;
-  // Type of chat we're querying
-  paramKey: "channelId" | "conversationId";
-  // ID of the channel or conversation
-  paramValue: string;
-  // Whether this is a channel or direct message chat
-  type: "channel" | "conversation";
+  queryKey: string; // Unique identifier for the query cache
+  paramKey: "channelId" | "conversationId"; // Type of ID we're querying with
+  paramValue: string; // The actual ID value
+  type: "channel" | "conversation"; // The type of chat we're querying
+  pageSize?: number; // Optional custom page size
 }
+
 /**
  * Custom hook that manages fetching and pagination of chat messages
- * Integrates with Pusher for real-time updates and React Query for data caching
- *
- * This hook provides:
- * - Infinite scrolling functionality
- * - Real-time updates through Pusher
- * - Fallback polling when Pusher connection is lost
- * - Caching and data synchronization
+ * Integrates with WebSocket for real-time updates and React Query for caching
  */
 export const useChatQuery = ({
   queryKey,
   paramKey,
   paramValue,
   type,
+  pageSize = DEFAULT_PAGE_SIZE,
 }: ChatQueryProps) => {
-  // Get Pusher connection state to determine if we need fallback polling
-  const { isConnected } = usePusher();
-  // Set up infinite query with React Query
-  const {
-    data, // Contains all fetched pages of messages
-    fetchNextPage, // Function to load more messages
-    hasNextPage, // Whether more messages are available
-    isFetchingNextPage, // Loading state for pagination
-    status, // Overall query status
-    error, // Any errors that occurred
-  } = useInfiniteQuery({
+  // Get WebSocket connection status for managing polling fallback
+  const { isConnected } = useWebSocket();
+
+  /**
+   * Main query configuration using React Query's useInfiniteQuery
+   */
+  return useInfiniteQuery({
     queryKey: [queryKey],
+
+    /**
+     * Fetch function that handles both channel and direct messages
+     */
     queryFn: async ({ pageParam }) => {
       try {
+        // Prepare query parameters
+        const queryParams = {
+          cursor: pageParam ? String(pageParam) : undefined,
+          limit: pageSize,
+          [paramKey]: paramValue,
+        };
+
+        // Execute appropriate query based on chat type
         let response: ActionResponse<
           PaginatedMessages | PaginatedDirectMessages
         >;
-
         if (type === "channel") {
           response = await getMessages({
             cursor: pageParam ? String(pageParam) : undefined,
@@ -255,27 +71,58 @@ export const useChatQuery = ({
           });
         }
 
-        if (!response.success) {
-          throw new Error(response.error.message);
+        // Ensure we always return a valid data structure
+        if (!response.success || !response.data) {
+          return {
+            items: [],
+            nextCursor: undefined,
+          };
         }
 
-        return response.data;
+        // Return formatted response
+        return {
+          items: response.data.items,
+          nextCursor: response.data.nextCursor,
+        };
       } catch (error) {
         console.error("[CHAT_QUERY_ERROR]", error);
-        throw error;
+        // Return safe empty state on error
+        return {
+          items: [],
+          nextCursor: undefined,
+        };
       }
     },
-    initialPageParam: undefined as undefined | string,
-    getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
-    refetchInterval: isConnected ? false : 1000,
-  });
 
-  return {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    status,
-    error,
-  };
+    // Configuration for pagination and polling
+    initialPageParam: undefined as undefined | string,
+    getNextPageParam: (lastPage) => lastPage?.nextCursor,
+
+    /**
+     * Enable polling as fallback when WebSocket is disconnected
+     * This ensures continuity of updates even if real-time connection fails
+     */
+    refetchInterval: isConnected ? false : 1000,
+
+    /**
+     * Additional configuration options
+     */
+    staleTime: 1000 * 60, // Consider data fresh for 1 minute
+    gcTime: 1000 * 60 * 5, // Keep unused data for 5 minutes
+
+    /**
+     * Select function to normalize data structure
+     */
+    select: (data) => ({
+      pages: data.pages.map((page) => ({
+        ...page,
+        items: page.items.map((message) => ({
+          ...message,
+          createdAt: new Date(message.createdAt).toISOString(),
+          updatedAt: new Date(message.updatedAt).toISOString(),
+        })),
+      })),
+      pageParams: data.pageParams,
+    }),
+  });
 };

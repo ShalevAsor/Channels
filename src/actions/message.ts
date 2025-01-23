@@ -3,7 +3,6 @@
 import { currentUserId } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { pusherServer, channelName, EVENTS } from "@/lib/pusher";
 
 import * as z from "zod";
 import { ChatInputSchema } from "@/schemas";
@@ -18,6 +17,8 @@ import {
   MessageError,
   ServerError,
 } from "@/lib/errors/app-error";
+import { broadcastMessage, WSEventType } from "@/lib/websocket";
+
 const MESSAGES_BATCH = 10;
 
 export async function getMessages({
@@ -75,6 +76,9 @@ export async function getMessages({
   }
 }
 
+/**
+ * Creates a new message and broadcasts it via WebSocket
+ */
 export async function createMessage(
   values: z.infer<typeof ChatInputSchema>,
   serverId: string,
@@ -82,23 +86,31 @@ export async function createMessage(
   fileUrl: string | null = null
 ): Promise<ActionResponse<MessageWithMemberWithUser>> {
   try {
+    // Validate required parameters
     if (!serverId || !channelId) {
       throw new ServerError("Server ID and channel ID are required");
     }
+
+    // Validate message content
     const validatedFields = ChatInputSchema.safeParse(values);
     if (!validatedFields.success) {
       throw new MessageError("Invalid message content");
     }
 
+    // Verify user authentication
     const userId = await currentUserId();
     if (!userId) {
       throw new AuthError("Unauthorized");
     }
 
+    // Get member information
     const member = await db.member.findFirst({
       where: {
         userId,
         serverId,
+      },
+      include: {
+        user: true,
       },
     });
 
@@ -106,6 +118,7 @@ export async function createMessage(
       throw new MemberError("Member not found");
     }
 
+    // Create message in database
     const message = await db.message.create({
       data: {
         content: validatedFields.data.content,
@@ -121,22 +134,35 @@ export async function createMessage(
         },
       },
     });
+
     if (!message) {
       throw new MessageError("Message not created");
     }
 
-    const channelKey = channelName(channelId);
-    console.log("Triggering message on channel:", channelKey);
+    // Broadcast message through WebSocket server
+    try {
+      await broadcastMessage<Message>({
+        channelId,
+        type: WSEventType.NEW_MESSAGE,
+        message,
+        member: message.member,
+      });
+    } catch (error) {
+      // Just log the broadcast error, don't fail the whole operation
+      console.log("Broadcast failed, message will sync through polling");
+    }
 
-    await pusherServer.trigger(channelKey, EVENTS.NEW_MESSAGE, message);
-
+    // Revalidate the chat page
     revalidatePath(`/servers/${serverId}/channels/${channelId}`);
-    return { success: true, data: message };
+
+    return {
+      success: true,
+      data: message,
+    };
   } catch (error) {
     return handleError(error);
   }
 }
-
 export async function editMessage(
   values: z.infer<typeof ChatInputSchema>,
   messageId: string,
@@ -204,13 +230,13 @@ export async function editMessage(
       },
     });
 
-    // Trigger real-time update
-    const channelKey = channelName(channelId);
-    await pusherServer.trigger(
-      channelKey,
-      EVENTS.MESSAGE_UPDATE,
-      updatedMessage
-    );
+    // Broadcast the message update
+    await broadcastMessage<Message>({
+      channelId,
+      type: WSEventType.MESSAGE_UPDATE,
+      message: updatedMessage,
+      member: updatedMessage.member,
+    });
 
     revalidatePath(`/servers/${serverId}/channels/${channelId}`);
     return { success: true, data: updatedMessage };
@@ -300,13 +326,13 @@ export async function deleteMessage(
       },
     });
 
-    const channelKey = channelName(channelId);
-
-    await pusherServer.trigger(
-      channelKey,
-      EVENTS.MESSAGE_UPDATE,
-      deletedMessage
-    );
+    // Broadcast the message deletion
+    await broadcastMessage<Message>({
+      channelId,
+      type: WSEventType.MESSAGE_DELETE,
+      message: deletedMessage,
+      member: deletedMessage.member,
+    });
 
     revalidatePath(`/servers/${serverId}/channels/${channelId}`);
     return { success: true, data: deletedMessage };
@@ -366,10 +392,13 @@ export async function createFileMessage(
       },
     });
 
-    const channelKey = channelName(channelId);
-    console.log("Triggering file message on channel:", channelKey);
-
-    await pusherServer.trigger(channelKey, EVENTS.NEW_MESSAGE, message);
+    // Broadcast message through WebSocket server
+    await broadcastMessage<Message>({
+      channelId,
+      type: WSEventType.NEW_MESSAGE,
+      message,
+      member: message.member,
+    });
 
     revalidatePath(`/servers/${serverId}/channels/${channelId}`);
     return { success: true, data: message };

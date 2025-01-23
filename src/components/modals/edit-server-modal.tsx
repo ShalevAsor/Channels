@@ -1,27 +1,21 @@
 "use client";
+/**
+ * Edit Server Modal
+ * Provides an interface for server administrators to modify server settings.
+ * Handles form state management, data persistence, and server updates.
+ */
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { InitialFormSchema } from "@/schemas";
+import { ServerFormSchema } from "@/schemas";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormMessage,
-  FormField,
-  FormLabel,
-  FormItem,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { FileUpload } from "@/components/file-upload";
+
 import { useRouter } from "next/navigation";
 import { useModalStore } from "@/stores/use-modal-store";
 import { useEffect } from "react";
@@ -29,29 +23,52 @@ import { updateServerSettings } from "@/actions/update-server";
 import { ServerError } from "@/lib/errors/app-error";
 import { useToast } from "@/hooks/use-toast";
 import { handleError } from "@/lib/errors/handle-error";
-import { FormError } from "../error/form-error";
+import { ServerForm } from "../server/server-form";
 export const EditServerModal = () => {
+  // Access modal state and server data from the store
   const { isOpen, onClose, type, data } = useModalStore();
   const router = useRouter();
   const { toast } = useToast();
   const isModalOpen = isOpen && type === "editServer";
   const { server } = data;
-
-  const form = useForm({
-    resolver: zodResolver(InitialFormSchema),
+  /**
+   * Form Configuration
+   * Initializes form with Zod validation and empty default values
+   * Values are populated with server data when available
+   */
+  const form = useForm<z.infer<typeof ServerFormSchema>>({
+    resolver: zodResolver(ServerFormSchema),
     defaultValues: {
       name: "",
       imageUrl: "",
+      isPublic: false,
+      category: "",
+      tags: [],
+      description: "",
     },
   });
+  /**
+   * Server Data Population
+   * Populates form fields with existing server data when modal opens
+   * Ensures form reflects current server settings
+   */
   useEffect(() => {
     if (server) {
       form.setValue("name", server.name);
       form.setValue("imageUrl", server.imageUrl);
+      form.setValue("isPublic", server.isPublic);
+      form.setValue("category", server.category || "");
+      form.setValue("tags", server.tags);
+      form.setValue("description", server.description || "");
     }
   }, [server, form]);
+
   const isLoading = form.formState.isSubmitting;
-  const onSubmit = async (values: z.infer<typeof InitialFormSchema>) => {
+  /**
+   * Form Submission Handler
+   * Processes server update request and handles success/error states
+   */
+  const onSubmit = async (values: z.infer<typeof ServerFormSchema>) => {
     try {
       if (!server?.id) {
         throw new ServerError("Server id is required");
@@ -87,73 +104,26 @@ export const EditServerModal = () => {
 
   const handleClose = () => {
     form.clearErrors();
-    form.reset();
     onClose();
   };
-  const formError = form.formState.errors.root?.message;
+
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
-      <DialogContent className="bg-white text-black p-0 overflow-hidden">
+      <DialogContent className="bg-white text-black dark:bg-zinc-900 dark:text-white p-0 overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
-            Customize your server
+            Edit your server
           </DialogTitle>
-          <DialogDescription className="text-sm text-zinc-500 text-center">
-            Give your server a personality with a name and an image. You can
-            always change it later
+          <DialogDescription className="text-sm text-zinc-500 dark:text-zinc-400 text-center">
+            Update your server's settings and information
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            {formError && <FormError message={formError} />}
-            <div className="space-y-8 px-6">
-              <div className="flex items-center justify-center">
-                <FormField
-                  control={form.control}
-                  name="imageUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <FileUpload
-                          endpoint="serverImage"
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="uppercase text-xs font-bold text-zinc-500 dark:text-secondary/70">
-                      Server name
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        className="bg-zinc-300/50 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0"
-                        disabled={isLoading}
-                        placeholder="Enter server name"
-                        {...field}
-                        autoComplete="off"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <DialogFooter className="bg-gray-100 px-6 py-4">
-              <Button variant="primary" disabled={isLoading}>
-                Save
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+        <ServerForm
+          form={form}
+          isLoading={isLoading}
+          onSubmit={onSubmit}
+          buttonLabel="Save"
+        />
       </DialogContent>
     </Dialog>
   );

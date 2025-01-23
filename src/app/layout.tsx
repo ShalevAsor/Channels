@@ -6,7 +6,6 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { cn } from "@/lib/utils";
 import { ModalProvider } from "@/components/providers/modal-provider";
 import { SessionProvider } from "next-auth/react";
-import { PusherProvider } from "@/components/providers/pusher-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
 const openSans = Open_Sans({
   subsets: ["latin"],
@@ -51,10 +50,10 @@ export default async function RootLayout({
               enableSystem={false}
               storageKey="discord-theme"
             >
-              <PusherProvider>
-                <ModalProvider />
-                <QueryProvider>{children}</QueryProvider>
-              </PusherProvider>
+              {/* <WebSocketProvider> */}
+              <ModalProvider />
+              <QueryProvider>{children}</QueryProvider>
+              {/* </WebSocketProvider> */}
             </ThemeProvider>
           </div>
         </SessionProvider>

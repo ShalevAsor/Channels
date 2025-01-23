@@ -1,5 +1,11 @@
 "use client";
-
+/**
+ * Leave Server Modal Component
+ *
+ * Provides a confirmation interface for users to leave a server safely.
+ * Implements comprehensive error handling and user feedback mechanisms
+ * to ensure a smooth departure process while preventing accidental actions.
+ */
 import {
   Dialog,
   DialogContent,
@@ -22,9 +28,22 @@ export const LeaveServerModal = () => {
   const router = useRouter();
   const isModalOpen = isOpen && type === "leaveServer";
   const { server } = data;
+  /**
+   * Local State Management
+   * Tracks loading and error states during the leave process
+   * to provide immediate feedback and prevent duplicate actions
+   */
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const { toast } = useToast();
+  /**
+   * Server Departure Handler
+   * Manages the complete process of leaving a server:
+   * 1. Validates server information
+   * 2. Attempts to leave the server
+   * 3. Handles success/failure scenarios
+   * 4. Manages navigation after departure
+   */
   const handleLeaveServer = async () => {
     try {
       setIsLoading(true);
@@ -57,7 +76,10 @@ export const LeaveServerModal = () => {
       setIsLoading(false);
     }
   };
-
+  /**
+   * Modal Close Handler
+   * Ensures clean state reset when closing the modal
+   */
   const handleClose = () => {
     setError("");
     setIsLoading(false);
@@ -66,12 +88,12 @@ export const LeaveServerModal = () => {
 
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
-      <DialogContent className="bg-white text-black p-0 overflow-hidden">
+      <DialogContent className="bg-white text-black dark:bg-zinc-900 dark:text-white p-0 overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
             Leave Server
           </DialogTitle>
-          <DialogDescription className="text-center text-zinc-500">
+          <DialogDescription className="text-center dark:text-zinc-400 text-zinc-500">
             Are you sure you want to leave{" "}
             <span className="font-semibold text-indigo-500">
               {server?.name}
@@ -80,9 +102,14 @@ export const LeaveServerModal = () => {
           </DialogDescription>
         </DialogHeader>
         {error && <ModalError message={error} />}
-        <DialogFooter className="bg-gray-100 px-6 py-4">
-          <div className="flex items-center justify-center w-full">
-            <Button variant="ghost" disabled={isLoading} onClick={onClose}>
+        <DialogFooter className="bg-gray-100 dark:bg-zinc-900 px-6 py-4">
+          <div className="flex items-center justify-center w-full gap-x-2">
+            <Button
+              className="hover:bg-zinc-500 dark:hover:bg-zinc-800"
+              variant="ghost"
+              disabled={isLoading}
+              onClick={onClose}
+            >
               Cancel
             </Button>
             <Button

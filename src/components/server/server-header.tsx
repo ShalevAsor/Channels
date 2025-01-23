@@ -1,5 +1,9 @@
 "use client";
-
+/**
+ * Server Header Component
+ * Provides server management interface through a dropdown menu.
+ * Displays different options based on user's role in the server.
+ */
 import { ServerWithMembersWithUsers } from "@/types";
 import { MemberRole } from "@prisma/client";
 import {
@@ -40,7 +44,7 @@ export const ServerHeader = ({ server, role, isMobile }: ServerHeaderProps) => {
           <ChevronDown className={cn("h-5 w-5 ml-auto", isMobile && "ml-1")} />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 text-xs font-medium text-black dark:text-neutral-400 space-y-[2px]">
+      <DropdownMenuContent className="w-56 text-xs font-medium bg-white text-black dark:bg-zinc-900 dark:text-white space-y-[2px]">
         {isModerator && (
           <DropdownMenuItem
             onClick={() => onOpen("invite", { server })}

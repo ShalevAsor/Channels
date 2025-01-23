@@ -1,71 +1,9 @@
-// // app/error.tsx
-// "use client";
-
-// import { useEffect } from "react";
-// import { Button } from "@/components/ui/button";
-// import { AppError } from "@/lib/errors/app-error";
-// import {
-//   getAppErrorDetails,
-//   getGeneralErrorDetails,
-// } from "@/lib/errors/error-helper";
-
-// export default function ErrorBoundary({
-//   error,
-//   reset,
-// }: {
-//   error: Error & { digest?: string };
-//   reset: () => void;
-// }) {
-//   // Log errors in development
-//   useEffect(() => {
-//     console.error("Error caught by error boundary:", error);
-//   }, [error]);
-
-//   // Get the appropriate error details based on error type
-//   const errorDetails =
-//     error instanceof AppError
-//       ? getAppErrorDetails(error)
-//       : getGeneralErrorDetails(error);
-
-//   console.log("Error details", errorDetails);
-//   return (
-//     <div className="flex flex-col items-center justify-center min-h-screen p-4">
-//       <h2 className="text-2xl font-bold mb-4">{errorDetails.title}</h2>
-//       <p className="text-zinc-500 mb-4 text-center">{errorDetails.message}</p>
-
-//       {/* Show technical details only in development */}
-//       {process.env.NODE_ENV === "development" && (
-//         <div className="mb-4 p-4 bg-zinc-100 rounded-md">
-//           <p className="text-sm font-mono">
-//             {errorDetails.technical || error.message}
-//           </p>
-//           {errorDetails.code && (
-//             <p className="text-sm text-zinc-500">Code: {errorDetails.code}</p>
-//           )}
-//           {error.digest && (
-//             <p className="text-sm text-zinc-500">Digest: {error.digest}</p>
-//           )}
-//         </div>
-//       )}
-
-//       <div className="flex gap-4">
-//         <Button onClick={reset}>Try Again</Button>
-//         <Button variant="outline" onClick={() => (window.location.href = "/")}>
-//           Go Home
-//         </Button>
-//       </div>
-//     </div>
-//   );
-// }
 "use client";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AppError } from "@/lib/errors/app-error";
-import {
-  getAppErrorDetails,
-  getGeneralErrorDetails,
-} from "@/lib/errors/error-helper";
+import { getGeneralErrorDetails } from "@/lib/errors/error-helper";
 import {
   AlertCircle,
   ChevronDown,

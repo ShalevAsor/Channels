@@ -5,6 +5,17 @@ import { Member, MemberRole, Server, User } from "@prisma/client";
 import { ShieldAlert, ShieldCheck } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import UserAvatar from "@/components/user-avatar";
+import { useEffect, useState } from "react";
+import { useWebSocket } from "../providers/websocket-provider";
+import { WSEventType } from "@/lib/websocket";
+import { StatusIndicator } from "./server-status-indicator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
+import { ServerRole } from "./server-role";
 
 interface ServerMemberProps {
   member: Member & { user: User };
@@ -23,11 +34,10 @@ export const ServerMember = ({ member, server }: ServerMemberProps) => {
   const params = useParams();
   const router = useRouter();
   const icon = roleIconMap[member.role];
-
+  const { isConnected } = useWebSocket();
   const onClick = () => {
     router.push(`/servers/${params?.serverId}/conversations/${member.id}`);
   };
-
   return (
     <button
       onClick={onClick}
@@ -40,7 +50,7 @@ export const ServerMember = ({ member, server }: ServerMemberProps) => {
         className="h-8 md:h-8 md:w-8"
         src={member.user.image || undefined}
       />
-      <div className="w-full flex items-center justify-between ">
+      <div className="w-full flex items-center justify-between">
         <p
           className={cn(
             "font-semibold text-sm text-zinc-500 group-hover:text-zinc-600 dark:text-zinc-400 dark:group-hover:text-zinc-300 transition",
@@ -50,7 +60,21 @@ export const ServerMember = ({ member, server }: ServerMemberProps) => {
         >
           {member.user.name}
         </p>
-        <div>{icon}</div>
+        <div className="flex items-center gap-x-2">
+          <ServerRole role={member.role} />
+          <TooltipProvider>
+            <Tooltip delayDuration={50}>
+              <TooltipTrigger asChild>
+                <div className="flex items-center justify-center">
+                  <StatusIndicator isConnected={isConnected} />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs font-semibold">
+                {isConnected ? "Online" : "Offline"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
     </button>
   );
