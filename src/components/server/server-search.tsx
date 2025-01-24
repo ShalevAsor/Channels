@@ -105,10 +105,9 @@
 // };
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Search } from "lucide-react";
-import { Dialog } from "@/components/ui/dialog";
 
 interface ServerSearchProps {
   data: {
@@ -129,6 +128,7 @@ export const ServerSearch = ({ data }: ServerSearchProps) => {
   const [search, setSearch] = useState("");
   const router = useRouter();
   const params = useParams();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -136,12 +136,36 @@ export const ServerSearch = ({ data }: ServerSearchProps) => {
         e.preventDefault();
         setOpen((open) => !open);
       }
+      if (e.key === "Escape") {
+        setOpen(false);
+      }
     };
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
     document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("keydown", down);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
-  const onClick = (id: string, type: "channel" | "member") => {
+  const onClick = ({
+    id,
+    type,
+  }: {
+    id: string;
+    type: "channel" | "member";
+  }) => {
     setOpen(false);
     if (type === "member") {
       return router.push(`/servers/${params.serverId}/conversations/${id}`);
@@ -159,7 +183,7 @@ export const ServerSearch = ({ data }: ServerSearchProps) => {
   }));
 
   return (
-    <>
+    <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setOpen(true)}
         className="group px-2 py-2 rounded-md flex items-center gap-x-2 w-full hover:bg-zinc-700/10 dark:hover:bg-zinc-700/50 transition"
@@ -173,49 +197,48 @@ export const ServerSearch = ({ data }: ServerSearchProps) => {
         </kbd>
       </button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-16">
-          <div className="w-full max-w-lg bg-white dark:bg-zinc-900 rounded-lg shadow-lg overflow-hidden">
-            <div className="p-4">
-              <input
-                className="w-full bg-transparent border-none outline-none text-sm"
-                placeholder="Search all channels and members"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
+      {open && (
+        <div className="absolute top-full mt-1 w-full bg-white dark:bg-zinc-900 rounded-md shadow-lg border border-zinc-200 dark:border-zinc-700 z-50">
+          <div className="p-2">
+            <input
+              type="text"
+              placeholder="Search all channels and members"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full p-2 bg-transparent border-none outline-none text-sm"
+              autoFocus
+            />
+          </div>
 
-            <div className="max-h-96 overflow-y-auto">
-              {!filteredData.some((group) => group.data?.length) && (
-                <p className="text-sm text-center py-4 text-muted-foreground">
-                  No results found
-                </p>
-              )}
-
-              {filteredData.map(({ label, type, data }) => {
-                if (!data?.length) return null;
-                return (
-                  <div key={label} className="px-2 py-1">
-                    <div className="text-xs font-medium text-muted-foreground px-2 py-1.5">
-                      {label}
-                    </div>
-                    {data.map(({ id, icon, name }) => (
-                      <button
-                        key={id}
-                        onClick={() => onClick(id, type)}
-                        className="w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded hover:bg-zinc-700/10 dark:hover:bg-zinc-700/50"
-                      >
-                        {icon}
-                        <span>{name}</span>
-                      </button>
-                    ))}
+          <div className="max-h-80 overflow-y-auto">
+            {filteredData.map(({ label, type, data }) => {
+              if (!data?.length) return null;
+              return (
+                <div key={label} className="px-2 pb-2">
+                  <div className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 mb-2">
+                    {label}
                   </div>
-                );
-              })}
-            </div>
+                  {data.map(({ id, icon, name }) => (
+                    <button
+                      key={id}
+                      onClick={() => onClick({ id, type })}
+                      className="w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-zinc-700/10 dark:hover:bg-zinc-700/50 transition flex items-center gap-x-2"
+                    >
+                      {icon}
+                      <span>{name}</span>
+                    </button>
+                  ))}
+                </div>
+              );
+            })}
+            {!filteredData.some((group) => group.data?.length) && (
+              <div className="px-4 py-2 text-sm text-zinc-500">
+                No results found
+              </div>
+            )}
           </div>
         </div>
-      </Dialog>
-    </>
+      )}
+    </div>
   );
 };
