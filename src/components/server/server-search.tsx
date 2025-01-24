@@ -182,10 +182,12 @@ export const ServerSearch = ({ data }: ServerSearchProps) => {
     ),
   }));
 
+  const toggleOpen = () => setOpen(!open);
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        onClick={() => setOpen(true)}
+        onClick={toggleOpen}
         className="group px-2 py-2 rounded-md flex items-center gap-x-2 w-full hover:bg-zinc-700/10 dark:hover:bg-zinc-700/50 transition"
       >
         <Search className="w-4 h-4 text-zinc-500 dark:text-zinc-400" />
@@ -205,7 +207,8 @@ export const ServerSearch = ({ data }: ServerSearchProps) => {
               placeholder="Search all channels and members"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full p-2 bg-transparent border-none outline-none text-sm"
+              className="w-full p-2 bg-transparent border-none outline-none text-sm truncate"
+              style={{ minWidth: "200px" }}
               autoFocus
             />
           </div>

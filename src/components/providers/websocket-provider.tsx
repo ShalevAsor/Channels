@@ -80,7 +80,8 @@ const WebSocketContext = createContext<WebSocketContextType>({
 export const useWebSocket = () => useContext(WebSocketContext);
 /** Base WebSocket server URL with fallback to localhost for development */
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:3001";
+const WS_URL =
+  process.env.NEXT_PUBLIC_WEBSOCKET_HTTP_URL || "ws://localhost:3001";
 /**
  * Reconnection Strategy Constants
  * Implements an exponential backoff strategy to prevent overwhelming the server
