@@ -248,24 +248,21 @@ export const WebSocketProvider = ({
          * Manages successful connection establishment and state restoration
          */
         wsRef.current.onopen = () => {
+          const currentSubscriptions = activeSubscriptions.current;
+          const currentWs = wsRef.current;
+
           console.log("WebSocket connection established successfully");
           setIsConnected(true);
           setConnectionCount((prev) => prev + 1);
           setLastError(null);
 
-          // Reset reconnection parameters on successful connection
           reconnectAttempts.current = 0;
           currentReconnectDelay.current = INITIAL_RECONNECT_DELAY;
           isInPollingMode.current = false;
 
-          /**
-           * State Restoration
-           * Resubscribes to all previously active channels
-           * Ensures continuous service after reconnection
-           */
-          activeSubscriptions.current.forEach((channelName) => {
+          currentSubscriptions.forEach((channelName) => {
             console.log(`Restoring subscription to channel: ${channelName}`);
-            wsRef.current?.send(
+            currentWs?.send(
               JSON.stringify({
                 type: "subscribe",
                 channelName,
@@ -317,14 +314,15 @@ export const WebSocketProvider = ({
          * Implements error handling for malformed messages
          */
         wsRef.current.onmessage = (event: MessageEvent) => {
+          const currentHandlers = messageHandlers.current;
+
           try {
             const data = JSON.parse(event.data);
             const messageType = data.event as WSEventType;
             const messageData = data.data as BaseMessagePayload;
 
             console.debug("Received message:", { type: messageType });
-            // Distribute message to registered handlers
-            const handlers = messageHandlers.current.get(messageType);
+            const handlers = currentHandlers.get(messageType);
             if (handlers) {
               handlers.forEach((handler) => handler(messageData));
             } else {
