@@ -77,7 +77,7 @@ export const ServerSearch = ({ data }: ServerSearchProps) => {
           Search channels and members
         </DialogTitle>
 
-        <CommandInput placeholder="Search all channels and members" />
+        <CommandInput />
         <CommandList>
           <CommandEmpty>No Results found</CommandEmpty>
           {data.map(({ label, type, data }) => {
