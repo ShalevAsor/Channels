@@ -13,7 +13,6 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import { ServerRole } from "./server-role";
-import { Lock } from "lucide-react";
 interface ServerMemberProps {
   member: Member & { user: User };
   server: Server;
