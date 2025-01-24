@@ -430,27 +430,27 @@ export const WebSocketProvider = ({
    * functionality.
    */
   useEffect(() => {
+    const subscriptions = activeSubscriptions.current;
+    const handlers = messageHandlers.current;
+    const timeout = reconnectTimeout.current;
+    const ws = wsRef.current;
+
     connectRef.current?.();
 
     return () => {
       console.log("Cleaning up WebSocket connection...");
-      if (reconnectTimeout.current) {
-        clearTimeout(reconnectTimeout.current);
+
+      if (timeout) {
+        clearTimeout(timeout);
       }
 
-      // Copy ref values to variables inside the effect
-      const currentWs = wsRef.current;
-      const currentActiveSubscriptions = new Set(activeSubscriptions.current);
-      const currentMessageHandlers = new Map(messageHandlers.current);
-
-      if (currentWs) {
-        currentWs.close();
+      if (ws) {
+        ws.close();
         wsRef.current = null;
       }
 
-      // Use the copied values in the cleanup function
-      currentActiveSubscriptions.clear();
-      currentMessageHandlers.clear();
+      subscriptions.clear();
+      handlers.clear();
     };
   }, []);
 
