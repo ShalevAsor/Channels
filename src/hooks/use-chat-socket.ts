@@ -4,7 +4,34 @@ import { useCallback, useEffect, useRef } from "react";
 import { useWebSocket } from "@/components/providers/websocket-provider";
 import { useQueryClient } from "@tanstack/react-query";
 import { Member } from "@prisma/client";
-import { WSEventType } from "@/lib/websocket";
+import { BaseMessagePayload, WSEventType } from "@/lib/websocket";
+
+interface QueryData {
+  pages: Array<{
+    items: Array<FormattedMessage>;
+  }>;
+}
+
+interface FormattedMessage {
+  id: string;
+  content: string;
+  fileUrl: string | null;
+  fileType: string | null;
+  fileName: string | null;
+  deleted: boolean;
+  edited: boolean;
+  createdAt: string;
+  updatedAt: string;
+  member: {
+    id: string;
+    role: string;
+    user: {
+      id: string;
+      name: string | null;
+      image: string | null;
+    };
+  };
+}
 
 /**
  * Props for configuring the chat socket behavior
@@ -29,41 +56,41 @@ export const useChatSocket = ({
     addMessageHandler,
     removeMessageHandler,
   } = useWebSocket();
-
+  const formatMessage = (message: BaseMessagePayload): FormattedMessage => ({
+    id: message.id,
+    content: message.content,
+    fileUrl: message.fileUrl,
+    fileType: message.fileType,
+    fileName: message.fileName,
+    deleted: false,
+    edited: false,
+    createdAt: new Date(message.timestamp).toISOString(),
+    updatedAt: new Date(message.timestamp).toISOString(),
+    member: {
+      id: message.memberId,
+      role: message.member?.role || "GUEST",
+      user: {
+        id: message.userId,
+        name: message.username,
+        image: message.userImage,
+      },
+    },
+  });
   // Handle new messages
   const newMessageHandler = useCallback(
-    (message: any) => {
+    (message: BaseMessagePayload) => {
       if (!isConnected) return;
 
-      const formattedMessage = {
-        id: message.id,
-        content: message.content,
-        fileUrl: message.fileUrl || null,
-        fileType: message.fileType || null,
-        fileName: message.fileName || null,
-        deleted: false,
-        edited: false,
-        createdAt: new Date(message.timestamp).toISOString(),
-        updatedAt: new Date(message.timestamp).toISOString(),
-        member: {
-          id: message.memberId,
-          role: message.member?.role || "GUEST",
-          user: {
-            id: message.userId,
-            name: message.username,
-            image: message.userImage || null,
-          },
-        },
-      };
+      const formattedMessage = formatMessage(message);
 
-      queryClient.setQueryData([queryKey], (oldData: any) => {
+      queryClient.setQueryData<QueryData>([queryKey], (oldData) => {
         if (!oldData?.pages?.length) {
           return {
             pages: [{ items: [formattedMessage] }],
           };
         }
 
-        const messageExists = oldData.pages.some((page: any) =>
+        const messageExists = oldData.pages.some((page) =>
           page.items.some((item: any) => item.id === formattedMessage.id)
         );
 
@@ -71,7 +98,7 @@ export const useChatSocket = ({
 
         return {
           ...oldData,
-          pages: oldData.pages.map((page: any, index: number) => ({
+          pages: oldData.pages.map((page, index) => ({
             ...page,
             items: index === 0 ? [formattedMessage, ...page.items] : page.items,
           })),
@@ -83,38 +110,19 @@ export const useChatSocket = ({
 
   // Handle message updates
   const messageUpdateHandler = useCallback(
-    (message: any) => {
+    (message: BaseMessagePayload) => {
       if (!isConnected) return;
 
-      const formattedMessage = {
-        id: message.id,
-        content: message.content,
-        fileUrl: message.fileUrl || null,
-        fileType: message.fileType || null,
-        fileName: message.fileName || null,
-        deleted: message.deleted || false,
-        edited: true,
-        createdAt: new Date(message.timestamp).toISOString(),
-        updatedAt: new Date(message.timestamp).toISOString(),
-        member: {
-          id: message.memberId,
-          role: message.member?.role || "GUEST",
-          user: {
-            id: message.userId,
-            name: message.username,
-            image: message.userImage || null,
-          },
-        },
-      };
+      const formattedMessage = formatMessage(message);
 
-      queryClient.setQueryData([queryKey], (oldData: any) => {
+      queryClient.setQueryData<QueryData>([queryKey], (oldData) => {
         if (!oldData?.pages?.length) return oldData;
 
         return {
           ...oldData,
-          pages: oldData.pages.map((page: any) => ({
+          pages: oldData.pages.map((page) => ({
             ...page,
-            items: page.items.map((item: any) =>
+            items: page.items.map((item) =>
               item.id === formattedMessage.id ? formattedMessage : item
             ),
           })),
@@ -125,38 +133,19 @@ export const useChatSocket = ({
   );
   // Add message delete handler
   const messageDeleteHandler = useCallback(
-    (message: any) => {
+    (message: BaseMessagePayload) => {
       if (!isConnected) return;
 
-      const formattedMessage = {
-        id: message.id,
-        content: message.content,
-        fileUrl: message.fileUrl || null,
-        fileType: message.fileType || null,
-        fileName: message.fileName || null,
-        deleted: true,
-        edited: false,
-        createdAt: new Date(message.timestamp).toISOString(),
-        updatedAt: new Date(message.timestamp).toISOString(),
-        member: {
-          id: message.memberId,
-          role: message.member?.role || "GUEST",
-          user: {
-            id: message.userId,
-            name: message.username,
-            image: message.userImage || null,
-          },
-        },
-      };
+      const formattedMessage = formatMessage(message);
 
-      queryClient.setQueryData([queryKey], (oldData: any) => {
+      queryClient.setQueryData<QueryData>([queryKey], (oldData) => {
         if (!oldData?.pages?.length) return oldData;
 
         return {
           ...oldData,
-          pages: oldData.pages.map((page: any) => ({
+          pages: oldData.pages.map((page) => ({
             ...page,
-            items: page.items.map((item: any) =>
+            items: page.items.map((item) =>
               item.id === formattedMessage.id ? formattedMessage : item
             ),
           })),
@@ -206,25 +195,7 @@ export const useChatSocket = ({
     messageDeleteHandler,
   ]);
 
-  // const sendChatMessage = useCallback(
-  //   (content: string, fileInfo?: any) => {
-  //     if (!isConnected) return;
-
-  //     sendMessage(channelKey, WSEventType.NEW_MESSAGE, {
-  //       content,
-  //       memberId: member.id,
-  //       userId: member.userId,
-  //       fileUrl: fileInfo?.url,
-  //       fileType: fileInfo?.type,
-  //       fileName: fileInfo?.name,
-  //       timestamp: new Date().toISOString(),
-  //     });
-  //   },
-  //   [isConnected, channelKey, member, sendMessage]
-  // );
-
   return {
     isConnected,
-    // sendMessage: sendChatMessage,
   };
 };

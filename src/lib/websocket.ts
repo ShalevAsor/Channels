@@ -2,7 +2,13 @@
 
 import axios from "axios";
 
-import { Message, DirectMessage, Member, User } from "@prisma/client";
+import {
+  Message,
+  DirectMessage,
+  Member,
+  User,
+  MemberRole,
+} from "@prisma/client";
 
 export enum WSEventType {
   NEW_MESSAGE = "new-message",
@@ -34,9 +40,11 @@ export interface BaseMessagePayload {
   username: string;
   userImage: string | null;
   timestamp: string;
+  deleted?: boolean;
+  edited?: boolean;
   member: {
     id: string;
-    role: string;
+    role: MemberRole;
     userId: string;
     user: {
       id: string;

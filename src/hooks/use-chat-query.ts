@@ -29,10 +29,8 @@ interface ChatQueryProps {
  */
 export const useChatQuery = ({
   queryKey,
-  paramKey,
   paramValue,
   type,
-  pageSize = DEFAULT_PAGE_SIZE,
 }: ChatQueryProps) => {
   // Get WebSocket connection status for managing polling fallback
   const { isConnected } = useWebSocket();
