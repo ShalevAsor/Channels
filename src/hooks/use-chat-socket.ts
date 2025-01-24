@@ -105,7 +105,7 @@ export const useChatSocket = ({
         };
       });
     },
-    [queryClient, queryKey, isConnected, member.role]
+    [queryClient, queryKey, isConnected]
   );
 
   // Handle message updates
@@ -129,7 +129,7 @@ export const useChatSocket = ({
         };
       });
     },
-    [queryClient, queryKey, isConnected, member.role]
+    [queryClient, queryKey, isConnected]
   );
   // Add message delete handler
   const messageDeleteHandler = useCallback(
@@ -152,7 +152,7 @@ export const useChatSocket = ({
         };
       });
     },
-    [queryClient, queryKey, isConnected, member.role]
+    [queryClient, queryKey, isConnected]
   );
   // Subscribe only once when connected and channelKey is available
   useEffect(() => {
