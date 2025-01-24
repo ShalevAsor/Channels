@@ -91,7 +91,7 @@ export const useChatSocket = ({
         }
 
         const messageExists = oldData.pages.some((page) =>
-          page.items.some((item: any) => item.id === formattedMessage.id)
+          page.items.some((item) => item.id === formattedMessage.id)
         );
 
         if (messageExists) return oldData;

@@ -8,11 +8,6 @@ import { ActionResponse } from "@/lib/errors/handle-error";
 import { PaginatedDirectMessages, PaginatedMessages } from "@/types";
 
 /**
- * Default page size for message queries
- */
-const DEFAULT_PAGE_SIZE = 10;
-
-/**
  * Props for configuring the chat query behavior
  */
 interface ChatQueryProps {

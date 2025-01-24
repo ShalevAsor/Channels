@@ -1,8 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Member, MemberRole, Server, User } from "@prisma/client";
-import { ShieldAlert, ShieldCheck } from "lucide-react";
+import { Member, Server, User } from "@prisma/client";
 import { useParams, useRouter } from "next/navigation";
 import UserAvatar from "@/components/user-avatar";
 import { useWebSocket } from "../providers/websocket-provider";
@@ -14,7 +13,7 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import { ServerRole } from "./server-role";
-
+import { Lock } from "lucide-react";
 interface ServerMemberProps {
   member: Member & { user: User };
   server: Server;

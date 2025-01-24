@@ -7,13 +7,22 @@ interface TypingUser {
   userId: string;
   username: string;
 }
+interface TypingStartEvent {
+  userId: string;
+  username: string;
+  typingUsers?: TypingUser[];
+}
 
+interface TypingStopEvent {
+  userId: string;
+  remainingTypingUsers?: TypingUser[];
+}
 export const useChatTyping = (channelId: string) => {
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const { addMessageHandler, removeMessageHandler } = useWebSocket();
 
   // Handle when someone starts typing
-  const handleTypingStart = useCallback((data: any) => {
+  const handleTypingStart = useCallback((data: TypingStartEvent) => {
     console.log("Received typing start event:", data);
 
     // Now expecting an array of typing users from the server
@@ -39,7 +48,7 @@ export const useChatTyping = (channelId: string) => {
   }, []);
 
   // Handle when someone stops typing
-  const handleTypingStop = useCallback((data: any) => {
+  const handleTypingStop = useCallback((data: TypingStopEvent) => {
     console.log("Received typing stop event:", data);
 
     // If we receive an updated list of typing users
