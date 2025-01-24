@@ -248,21 +248,24 @@ export const WebSocketProvider = ({
          * Manages successful connection establishment and state restoration
          */
         wsRef.current.onopen = () => {
-          const currentSubscriptions = activeSubscriptions.current;
-          const currentWs = wsRef.current;
-
           console.log("WebSocket connection established successfully");
           setIsConnected(true);
           setConnectionCount((prev) => prev + 1);
           setLastError(null);
 
+          // Reset reconnection parameters on successful connection
           reconnectAttempts.current = 0;
           currentReconnectDelay.current = INITIAL_RECONNECT_DELAY;
           isInPollingMode.current = false;
 
-          currentSubscriptions.forEach((channelName) => {
+          /**
+           * State Restoration
+           * Resubscribes to all previously active channels
+           * Ensures continuous service after reconnection
+           */
+          activeSubscriptions.current.forEach((channelName) => {
             console.log(`Restoring subscription to channel: ${channelName}`);
-            currentWs?.send(
+            wsRef.current?.send(
               JSON.stringify({
                 type: "subscribe",
                 channelName,
@@ -314,15 +317,14 @@ export const WebSocketProvider = ({
          * Implements error handling for malformed messages
          */
         wsRef.current.onmessage = (event: MessageEvent) => {
-          const currentHandlers = messageHandlers.current;
-
           try {
             const data = JSON.parse(event.data);
             const messageType = data.event as WSEventType;
             const messageData = data.data as BaseMessagePayload;
 
             console.debug("Received message:", { type: messageType });
-            const handlers = currentHandlers.get(messageType);
+            // Distribute message to registered handlers
+            const handlers = messageHandlers.current.get(messageType);
             if (handlers) {
               handlers.forEach((handler) => handler(messageData));
             } else {
@@ -428,35 +430,27 @@ export const WebSocketProvider = ({
    * functionality.
    */
   useEffect(() => {
-    /**
-     * Initial Connection Establishment
-     * Triggers the connection process when the provider mounts
-     */
     connectRef.current?.();
-    /**
-     * Cleanup Function
-     * Implements comprehensive cleanup of WebSocket resources when the provider unmounts
-     * This prevents memory leaks and ensures proper resource management
-     */
+
     return () => {
       console.log("Cleaning up WebSocket connection...");
-      // Capture current values within the effect
-      const currentReconnectTimeout = reconnectTimeout.current;
-      const currentWs = wsRef.current;
-      const currentSubscriptions = activeSubscriptions.current;
-      const currentHandlers = messageHandlers.current;
-
-      if (currentReconnectTimeout) {
-        clearTimeout(currentReconnectTimeout);
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
       }
+
+      // Copy ref values to variables inside the effect
+      const currentWs = wsRef.current;
+      const currentActiveSubscriptions = new Set(activeSubscriptions.current);
+      const currentMessageHandlers = new Map(messageHandlers.current);
 
       if (currentWs) {
         currentWs.close();
         wsRef.current = null;
       }
 
-      currentSubscriptions.clear();
-      currentHandlers.clear();
+      // Use the copied values in the cleanup function
+      currentActiveSubscriptions.clear();
+      currentMessageHandlers.clear();
     };
   }, []);
 
