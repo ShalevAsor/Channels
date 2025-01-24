@@ -204,7 +204,7 @@ export const ServerSearch = ({ data }: ServerSearchProps) => {
           <div className="p-2">
             <input
               type="text"
-              placeholder="Search all channels and members"
+              placeholder="Search for channels or members"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full p-2 bg-transparent border-none outline-none text-sm truncate"
