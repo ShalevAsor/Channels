@@ -70,8 +70,8 @@ export const useChatScroll = ({
   ); // No dependencies since this is a pure calculation
 
   // Update the debounced scroll handler to use inline function
-  const handleScroll = useCallback(
-    debounce(() => {
+  const handleScroll = useCallback(() => {
+    const debouncedScroll = debounce(() => {
       const topDiv = chatRef?.current;
       if (!topDiv) return;
 
@@ -83,21 +83,23 @@ export const useChatScroll = ({
       }
 
       setIsUserScrolling(distanceFromBottom > scrollThresholds.AUTO_SCROLL);
-    }, 50),
-    [chatRef, shouldLoadMore, loadMore, scrollThresholds, getScrollMetrics]
-  );
+    }, 50);
+
+    return debouncedScroll;
+  }, [chatRef, shouldLoadMore, loadMore, scrollThresholds, getScrollMetrics]);
 
   // Set up scroll event listener
   useEffect(() => {
     const topDiv = chatRef?.current;
     if (!topDiv) return;
 
-    topDiv.addEventListener("scroll", handleScroll);
-    handleScroll(); // Check initial scroll position
+    const scrollHandler = handleScroll();
+    topDiv.addEventListener("scroll", scrollHandler);
+    scrollHandler(); // Check initial position
 
     return () => {
-      handleScroll.cancel(); // Clean up debounced function
-      topDiv.removeEventListener("scroll", handleScroll);
+      scrollHandler.cancel();
+      topDiv.removeEventListener("scroll", scrollHandler);
     };
   }, [chatRef, handleScroll]);
 
