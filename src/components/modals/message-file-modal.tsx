@@ -97,15 +97,12 @@ export const MessageFileModal = () => {
 
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
-      <DialogContent
-        className="bg-white text-black p-0 overflow-hidden"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
+      <DialogContent className="bg-white text-black dark:bg-zinc-900 dark:text-white p-0 overflow-hidden">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold">
             Add an attachment
           </DialogTitle>
-          <DialogDescription className="text-sm text-zinc-500 text-center">
+          <DialogDescription className="text-sm text-zinc-500 dark:text-zinc-400 text-center">
             Send a file as a message
           </DialogDescription>
         </DialogHeader>
@@ -120,11 +117,6 @@ export const MessageFileModal = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        {/* <FileUpload
-                          endpoint="messageFile"
-                          value={field.value}
-                          onChange={field.onChange}
-                        /> */}
                         <FileUpload
                           endpoint="messageFile"
                           value={field.value}
@@ -143,7 +135,7 @@ export const MessageFileModal = () => {
                 />
               </div>
             </div>
-            <DialogFooter className="bg-gray-100 px-6 py-4">
+            <DialogFooter className="bg-gray-100 dark:bg-zinc-900 px-6 py-4">
               <Button variant="primary" disabled={isLoading}>
                 Send
               </Button>
