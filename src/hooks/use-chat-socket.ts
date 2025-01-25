@@ -56,14 +56,18 @@ export const useChatSocket = ({
     addMessageHandler,
     removeMessageHandler,
   } = useWebSocket();
-  const formatMessage = (message: BaseMessagePayload): FormattedMessage => ({
+  const formatMessage = (
+    message: BaseMessagePayload,
+    edited: boolean = false,
+    deleted: boolean = false
+  ): FormattedMessage => ({
     id: message.id,
     content: message.content,
     fileUrl: message.fileUrl,
     fileType: message.fileType,
     fileName: message.fileName,
-    deleted: false,
-    edited: false,
+    deleted: deleted,
+    edited: edited,
     createdAt: new Date(message.timestamp).toISOString(),
     updatedAt: new Date(message.timestamp).toISOString(),
     member: {
@@ -113,7 +117,7 @@ export const useChatSocket = ({
     (message: BaseMessagePayload) => {
       if (!isConnected) return;
 
-      const formattedMessage = formatMessage(message);
+      const formattedMessage = formatMessage(message, true, false);
 
       queryClient.setQueryData<QueryData>([queryKey], (oldData) => {
         if (!oldData?.pages?.length) return oldData;
@@ -136,7 +140,7 @@ export const useChatSocket = ({
     (message: BaseMessagePayload) => {
       if (!isConnected) return;
 
-      const formattedMessage = formatMessage(message);
+      const formattedMessage = formatMessage(message, false, true);
 
       queryClient.setQueryData<QueryData>([queryKey], (oldData) => {
         if (!oldData?.pages?.length) return oldData;
