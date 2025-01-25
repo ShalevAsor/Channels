@@ -23,7 +23,7 @@ export const apiAuthPrefix = "/api/auth";
  * The default route to redirect to after logging in
  */
 
-export const DEFAULT_LOGIN_REDIRECT = "/settings";
+export const DEFAULT_LOGIN_REDIRECT = "/";
 
 /**
  * The default route to redirect to after logging out
