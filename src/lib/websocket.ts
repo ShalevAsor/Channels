@@ -18,14 +18,6 @@ export enum WSEventType {
   MEMBER_STOP_TYPING = "member-stop-typing",
   MEMBER_STATUS_UPDATE = "MEMBER_STATUS_UPDATE",
 }
-export interface StatusUpdatePayload {
-  userId: string;
-  isOnline: boolean;
-  onlineUsers: string[];
-  serverPresence: string[]; // Added for cross-server presence
-}
-
-export type WebSocketPayload = BaseMessagePayload | StatusUpdatePayload;
 export interface WebSocketAuthToken {
   userId: string;
   name: string | null;
