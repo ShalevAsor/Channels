@@ -53,7 +53,11 @@ export interface BaseMessagePayload {
     };
   };
 }
-
+export interface MemberStatusPayload extends BaseMessagePayload {
+  userId: string;
+  isOnline: boolean;
+  onlineUsers: string[];
+}
 // Generic broadcast options interface
 interface BroadcastOptions<T = Message | DirectMessage> {
   channelId: string; // This can be either channelId or conversationId

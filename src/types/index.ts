@@ -55,11 +55,11 @@ export type ServerWithMemberInfo = Server & {
     members: number;
   };
 };
-export type ServerWithMemberCount = Server & {
-  _count: {
-    members: number;
-  };
-};
+// export type ServerWithMemberCount = Server & {
+//   _count: {
+//     members: number;
+//   };
+// };
 export type NextApiResponseServerIo = NextApiResponse & {
   socket: Socket & {
     server: NetServer & {
@@ -83,17 +83,17 @@ export type MessageWithMember = (Message | DirectMessage) & {
 //   items: MessageWithMemberWithUser[];
 //   nextCursor?: string;
 // };
-export type MessageWithMemberWithUser = Message & {
-  member: Member & {
-    user: User;
-  };
-};
+// export type MessageWithMemberWithUser = Message & {
+//   member: Member & {
+//     user: User;
+//   };
+// };
 
-export type DirectMessageWithMemberWithUser = DirectMessage & {
-  member: Member & {
-    user: User;
-  };
-};
+// export type DirectMessageWithMemberWithUser = DirectMessage & {
+//   member: Member & {
+//     user: User;
+//   };
+// };
 
 export type ChatMessage =
   | MessageWithMemberWithUser
@@ -130,22 +130,22 @@ export type ConversationWithMembers = Conversation & {
   };
 };
 
-export type PaginatedMessages = {
-  items: MessageWithMemberWithUser[];
-  nextCursor: string | undefined;
-};
-export type DirectMessageWithMemberDetails = DirectMessage & {
-  member: Member & {
-    user: User;
-    server: Server;
-  };
-};
+// export type PaginatedMessages = {
+//   items: MessageWithMemberWithUser[];
+//   nextCursor: string | undefined;
+// };
+// export type DirectMessageWithMemberDetails = DirectMessage & {
+//   member: Member & {
+//     user: User;
+//     server: Server;
+//   };
+// };
 
-// Define type for paginated response
-export type PaginatedDirectMessages = {
-  items: DirectMessageWithMemberDetails[];
-  nextCursor: string | undefined;
-};
+// // Define type for paginated response
+// export type PaginatedDirectMessages = {
+//   items: DirectMessageWithMemberDetails[];
+//   nextCursor: string | undefined;
+// };
 
 // ***********************************
 // Chat types

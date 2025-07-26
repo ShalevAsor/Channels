@@ -28,7 +28,7 @@ export async function GET() {
     const token = sign(tokenPayload, WS_JWT_SECRET);
 
     console.log("[WS_AUTH] Generated token for user:", user.id);
-    return NextResponse.json({ token });
+    return NextResponse.json({ token, userId: user.id });
   } catch (error) {
     console.error("[WS_AUTH] Error:", error);
     return new NextResponse("Internal Error", { status: 500 });

@@ -8,7 +8,6 @@ import * as z from "zod";
 import { ChatInputSchema } from "@/schemas";
 import { MessageFileSchema } from "@/schemas";
 import { MemberRole, Message } from "@prisma/client";
-import { PaginatedMessages, MessageWithMemberWithUser } from "@/types";
 import { ActionResponse, handleError } from "@/lib/errors/handle-error";
 import {
   AuthError,
@@ -18,8 +17,9 @@ import {
   ServerError,
 } from "@/lib/errors/app-error";
 import { broadcastMessage, WSEventType } from "@/lib/websocket";
-
-const MESSAGES_BATCH = 10;
+import { MessageWithMemberWithUser, PaginatedMessages } from "@/types/message";
+import { validateAuth, validateMessageParams } from "@/utils/validation-utils";
+import { MESSAGES_BATCH } from "@/constants/message";
 
 export async function getMessages({
   cursor,
@@ -32,9 +32,9 @@ export async function getMessages({
 }): Promise<ActionResponse<PaginatedMessages>> {
   try {
     const userId = await currentUserId();
-    if (!userId) {
-      throw new AuthError("Unauthorized");
-    }
+
+    validateAuth(userId);
+
     if (!channelId && !conversationId) {
       throw new ServerError("Invalid parameters");
     }
@@ -77,7 +77,14 @@ export async function getMessages({
 }
 
 /**
- * Creates a new message and broadcasts it via WebSocket
+ * Creates a new text message in a channel with real-time broadcasting
+ * Handles validation, member verification, database storage, and WebSocket updates
+ *
+ * @param values - Message content (validated against ChatInputSchema)
+ * @param serverId - Target server ID
+ * @param channelId - Target channel ID
+ * @param fileUrl - Optional file attachment URL (defaults to null)
+ * @returns Promise resolving to the created message with member data
  */
 export async function createMessage(
   values: z.infer<typeof ChatInputSchema>,
@@ -86,10 +93,7 @@ export async function createMessage(
   fileUrl: string | null = null
 ): Promise<ActionResponse<MessageWithMemberWithUser>> {
   try {
-    // Validate required parameters
-    if (!serverId || !channelId) {
-      throw new ServerError("Server ID and channel ID are required");
-    }
+    validateMessageParams(serverId, channelId);
 
     // Validate message content
     const validatedFields = ChatInputSchema.safeParse(values);
@@ -99,9 +103,7 @@ export async function createMessage(
 
     // Verify user authentication
     const userId = await currentUserId();
-    if (!userId) {
-      throw new AuthError("Unauthorized");
-    }
+    validateAuth(userId);
 
     // Get member information
     const member = await db.member.findFirst({
@@ -166,6 +168,18 @@ export async function createMessage(
     return handleError(error);
   }
 }
+
+/**
+ * Edits an existing message with permission validation
+ * Only message owners can edit their messages
+ * When editing, file attachments are removed and message is marked as edited
+ *
+ * @param values - New message content validated against ChatInputSchema
+ * @param messageId - ID of message to edit
+ * @param serverId - Server ID (for path revalidation)
+ * @param channelId - Channel ID (for broadcasting and validation)
+ * @returns Promise resolving to the updated message
+ */
 export async function editMessage(
   values: z.infer<typeof ChatInputSchema>,
   messageId: string,
@@ -173,29 +187,22 @@ export async function editMessage(
   channelId: string
 ): Promise<ActionResponse<MessageWithMemberWithUser>> {
   try {
-    if (!serverId) {
-      throw new ServerError("Server ID is required");
-    }
-    if (!channelId) {
-      throw new ServerError("Channel ID is required");
-    }
+    validateMessageParams(serverId, channelId);
     if (!messageId) {
       throw new ServerError("Message ID is required");
     }
-
     const userId = await currentUserId();
-    if (!userId) {
-      throw new AuthError("Unauthorized");
-    }
 
-    // Validate the content first
+    validateAuth(userId);
+
+    // Validate the content
     const validatedFields = ChatInputSchema.safeParse(values);
     if (!validatedFields.success) {
       throw new MessageError("Invalid message content");
     }
     const { content } = validatedFields.data;
 
-    // First fetch the message with its member info
+    // fetch the message with its member info
     const message = await db.message.findUnique({
       where: {
         id: messageId,
@@ -209,7 +216,7 @@ export async function editMessage(
       throw new MessageError("Message not found");
     }
 
-    // Explicitly check if the user is the message owner
+    // check if the user is the message owner
     if (message.member.userId !== userId) {
       throw new MessageError("You can only edit your own messages");
     }
@@ -248,26 +255,31 @@ export async function editMessage(
   }
 }
 
+/**
+ * Soft deletes a message with permission validation
+ * Message owners, moderators, and admins can delete messages
+ * The message content is replaced with "This message has been deleted"
+ *
+ * @param messageId - ID of message to delete
+ * @param serverId - Server ID (for permission checking and path revalidation)
+ * @param channelId - Channel ID (for broadcasting and validation)
+ * @returns Promise resolving to the deleted message
+ */
 export async function deleteMessage(
   messageId: string,
   serverId: string,
   channelId: string
 ): Promise<ActionResponse<MessageWithMemberWithUser>> {
   try {
-    if (!serverId) {
-      throw new ServerError("Server ID is required");
-    }
-    if (!channelId) {
-      throw new ServerError("Channel ID is required");
-    }
+    validateMessageParams(serverId, channelId);
+
     if (!messageId) {
       throw new ServerError("Message ID is required");
     }
 
     const userId = await currentUserId();
-    if (!userId) {
-      throw new AuthError("Unauthorized");
-    }
+
+    validateAuth(userId);
 
     // First get the member trying to delete the message
     const currentMember = await db.member.findFirst({
@@ -343,6 +355,16 @@ export async function deleteMessage(
     return handleError(error);
   }
 }
+
+/**
+ * Creates a new file message in a channel
+ * Specialized handler for file attachments with metadata
+ *
+ * @param values - File message data (URL, name, type) validated against MessageFileSchema
+ * @param serverId - Target server ID
+ * @param channelId - Target channel ID
+ * @returns Promise resolving to the created file message
+ */
 
 export async function createFileMessage(
   values: z.infer<typeof MessageFileSchema>,
