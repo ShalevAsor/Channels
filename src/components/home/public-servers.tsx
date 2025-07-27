@@ -30,7 +30,7 @@ import { Loader2, ChevronDown, ChevronUp, Users, Tag, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { joinServer } from "@/actions/server-discovery";
 import { useRouter } from "next/navigation";
-import { ServerWithMemberCount } from "@/types";
+import { ServerWithMemberCount } from "@/types/server";
 
 interface PublicServersProps {
   userId: string;
