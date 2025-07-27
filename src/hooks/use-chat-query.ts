@@ -5,7 +5,7 @@ import { useWebSocket } from "@/components/providers/websocket-provider";
 import { getMessages } from "@/actions/message";
 import { getDirectMessages } from "@/actions/direct-messages";
 import { ActionResponse } from "@/lib/errors/handle-error";
-import { PaginatedDirectMessages, PaginatedMessages } from "@/types/message";
+import { PaginatedDirectMessages, PaginatedMessages } from "@/types";
 
 /**
  * Props for configuring the chat query behavior

@@ -17,7 +17,7 @@ import {
   ServerError,
 } from "@/lib/errors/app-error";
 import { broadcastMessage, WSEventType } from "@/lib/websocket";
-import { MessageWithMemberWithUser, PaginatedMessages } from "@/types/message";
+import { MessageWithMemberWithUser, PaginatedMessages } from "@/types";
 import { validateAuth, validateMessageParams } from "@/utils/validation-utils";
 import { MESSAGES_BATCH } from "@/constants/message";
 

@@ -8,7 +8,7 @@ import { ChatInputSchema, MessageFileSchema } from "@/schemas";
 import {
   PaginatedDirectMessages,
   DirectMessageWithMemberWithUser,
-} from "@/types/message";
+} from "@/types";
 import { ActionResponse, handleError } from "@/lib/errors/handle-error";
 import {
   AuthError,
