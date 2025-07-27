@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navbar } from "./navbar";
 import { PublicServers } from "./public-servers";
 import { UserServers } from "./user-servers";
-import { ServerWithMemberCount, ServerWithMemberInfo } from "@/types";
+import { ServerWithMemberCount, ServerWithMemberInfo } from "@/types/server";
 
 interface HomeProps {
   userId: string;
