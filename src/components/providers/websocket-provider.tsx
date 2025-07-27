@@ -81,7 +81,9 @@ export const useWebSocket = () => useContext(WebSocketContext);
 /** Base WebSocket server URL with fallback to localhost for development */
 
 const WS_URL =
-  process.env.NEXT_PUBLIC_WEBSOCKET_HTTP_URL || "ws://localhost:3001";
+  (
+    process.env.NEXT_PUBLIC_WEBSOCKET_HTTP_URL || "http://localhost:3001"
+  ).replace("http:", "ws:") + "/ws";
 /**
  * Reconnection Strategy Constants
  * Implements an exponential backoff strategy to prevent overwhelming the server
@@ -201,7 +203,7 @@ export const WebSocketProvider = ({
          * This prevents unnecessary connection attempts to an unavailable server
          */
         try {
-          const serverUrl = WS_URL.replace("ws:", "http:");
+          const serverUrl = WS_URL.replace("ws:", "http:").replace("/ws", "");
           await fetch(`${serverUrl}/health`, {
             method: "HEAD",
             signal: AbortSignal.timeout(2000), // Ensure quick failure for unavailable servers

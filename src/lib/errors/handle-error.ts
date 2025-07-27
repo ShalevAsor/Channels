@@ -1,4 +1,3 @@
-// src/lib/errors/handle-error.ts
 import { AppError } from "./app-error";
 import { Prisma } from "@prisma/client";
 
@@ -28,6 +27,27 @@ export function handleError(
   error: unknown,
   options: ErrorHandlerOptions = { logError: true }
 ): ErrorResponse {
+  // Handle Next.js redirect errors - don't process them as errors
+  if (error && typeof error === "object" && "digest" in error) {
+    const digest = error.digest;
+    if (typeof digest === "string" && digest.includes("NEXT_REDIRECT")) {
+      // This is a redirect, re-throw it to let Next.js handle it
+      throw error;
+    }
+  }
+
+  // Handle null or undefined errors
+  if (!error) {
+    console.warn("Received null/undefined error in handleError");
+    return {
+      success: false,
+      error: {
+        message: "An unknown error occurred",
+        code: "UNKNOWN_ERROR",
+      },
+    };
+  }
+
   const errorResponse: ErrorResponse = {
     success: false,
     error: {

@@ -35,7 +35,7 @@ const ChannelIdPage = async ({ params }: ChannelIdPageProps) => {
     getMemberWithUserByServerAndUserId(serverId, userId),
   ]);
   if (!channelResponse.success || !memberResponse.success) {
-    return redirect(`/servers/${serverId}`);
+    return redirect("/");
   }
   const { channel, member } = {
     channel: channelResponse.data,

@@ -58,7 +58,13 @@ export const getMemberWithUserByServerAndUserId = async (
       },
     });
     if (!member) {
-      throw new MemberError("Member not found");
+      return {
+        success: false,
+        error: {
+          message: "Member not found",
+          code: "MEMBER_ERROR",
+        },
+      };
     }
     return {
       success: true,

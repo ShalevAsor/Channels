@@ -68,7 +68,13 @@ export const getServerByServerAndUserId = async (
       },
     });
     if (!server) {
-      throw new ServerError("Server not found or access denied");
+      return {
+        success: false,
+        error: {
+          message: "Server not found or access denied",
+          code: "SERVER_ERROR",
+        },
+      };
     }
     return {
       success: true,
